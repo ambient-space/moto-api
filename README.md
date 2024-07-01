@@ -1,13 +1,19 @@
 # Elysia with Bun runtime
 
 ## Getting Started
-To get started with this template, simply paste this command into your terminal:
+
+## Installation
+
+Make sure you have bun installed. If not run the command below:
+
 ```bash
-bun create elysia ./elysia-example
+curl https://bun.sh/install | bash
 ```
 
 ## Development
+
 To start the development server run:
+
 ```bash
 bun run dev
 ```
