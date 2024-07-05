@@ -36,6 +36,13 @@
       "when": 1720183268433,
       "tag": "0004_closed_komodo",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1720189740022,
+      "tag": "0005_fantastic_pretty_boy",
+      "breakpoints": true
     }
   ]
 }
