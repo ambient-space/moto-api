@@ -13,7 +13,9 @@ import { community } from "./community"
 export const trip = pgTable("trip", {
 	id: serial("id").primaryKey(),
 	communityId: integer("community_id").references(() => community.id),
-	createdBy: text("created_by").references(() => authUser.id),
+	createdBy: text("created_by")
+		.references(() => authUser.id)
+		.notNull(),
 	name: text("name").notNull(),
 	description: text("description"),
 	startDate: timestamp("start_date").notNull(),
@@ -22,8 +24,11 @@ export const trip = pgTable("trip", {
 	endLocation: jsonb("end_location"), // { lat: number, lng: number }
 	route: jsonb("route"), // Array of waypoints
 	maxParticipants: integer("max_participants"),
-	createdAt: timestamp("created_at").defaultNow().notNull(),
-	updatedAt: timestamp("updated_at").defaultNow().notNull(),
+	createdAt: timestamp("created_at").default(new Date()).notNull(),
+	updatedAt: timestamp("updated_at")
+		.default(new Date())
+		.notNull()
+		.$onUpdate(() => new Date()),
 })
 
 export const tripParticipant = pgTable("trip_participant", {

@@ -14,8 +14,11 @@ export const community = pgTable("community", {
 	name: text("name").notNull(),
 	description: text("description"),
 	createdBy: text("created_by").references(() => authUser.id),
-	createdAt: timestamp("created_at").defaultNow().notNull(),
-	updatedAt: timestamp("updated_at").defaultNow().notNull(),
+	createdAt: timestamp("created_at").default(new Date()).notNull(),
+	updatedAt: timestamp("updated_at")
+		.default(new Date())
+		.notNull()
+		.$onUpdate(() => new Date()),
 	isPrivate: boolean("is_private").default(false),
 	rules: text("rules"),
 	coverImage: text("cover_image"),
@@ -43,7 +46,7 @@ export const announcement = pgTable("announcement", {
 		onDelete: "cascade",
 	}),
 	content: text("content").notNull(),
-	createdAt: timestamp("created_at").defaultNow().notNull(),
+	createdAt: timestamp("created_at").default(new Date()).notNull(),
 })
 
 export const message = pgTable("message", {

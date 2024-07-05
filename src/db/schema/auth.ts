@@ -7,6 +7,11 @@ export const authUser = pgTable("auth_user", {
 	username: text("username").notNull().unique(),
 	email: text("email").notNull().unique(),
 	hashedPassword: text("hashed_password"),
+	createdAt: timestamp("created_at").default(new Date()).notNull(),
+	updatedAt: timestamp("updated_at")
+		.default(new Date())
+		.notNull()
+		.$onUpdate(() => new Date()),
 })
 
 export const authSession = pgTable("auth_session", {
@@ -18,6 +23,11 @@ export const authSession = pgTable("auth_session", {
 		withTimezone: true,
 		mode: "date",
 	}).notNull(),
+	createdAt: timestamp("created_at").default(new Date()).notNull(),
+	updatedAt: timestamp("updated_at")
+		.default(new Date())
+		.notNull()
+		.$onUpdate(() => new Date()),
 })
 
 export const adapter = new DrizzlePostgreSQLAdapter(db, authSession, authUser)

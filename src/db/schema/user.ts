@@ -8,8 +8,11 @@ export const userProfile = pgTable("user_profile", {
 	fullName: text("full_name"),
 	profilePicture: text("profile_picture"),
 	bio: text("bio"),
-	createdAt: timestamp("created_at").defaultNow().notNull(),
-	updatedAt: timestamp("updated_at").defaultNow().notNull(),
+	createdAt: timestamp("created_at").default(new Date()).notNull(),
+	updatedAt: timestamp("updated_at")
+		.default(new Date())
+		.notNull()
+		.$onUpdate(() => new Date()),
 })
 
 export const kycDocument = pgTable("kyc_document", {
