@@ -1,3 +1,5 @@
+import { sharedColumns } from "@db/shared"
+import { sql } from "drizzle-orm"
 import { pgTable, serial, text, timestamp } from "drizzle-orm/pg-core"
 import { authUser } from "./auth"
 
@@ -8,11 +10,7 @@ export const userProfile = pgTable("user_profile", {
 	fullName: text("full_name"),
 	profilePicture: text("profile_picture"),
 	bio: text("bio"),
-	createdAt: timestamp("created_at").default(new Date()).notNull(),
-	updatedAt: timestamp("updated_at")
-		.default(new Date())
-		.notNull()
-		.$onUpdate(() => new Date()),
+	...sharedColumns,
 })
 
 export const kycDocument = pgTable("kyc_document", {
@@ -23,6 +21,8 @@ export const kycDocument = pgTable("kyc_document", {
 	documentType: text("document_type").notNull(), // e.g., 'driving_license', 'registration_certificate'
 	documentNumber: text("document_number").notNull(),
 	verificationStatus: text("verification_status").notNull(), // e.g., 'pending', 'verified', 'rejected'
-	uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
-	verifiedAt: timestamp("verified_at"),
+	uploadedAt: timestamp("uploaded_at", { mode: "string" })
+		.defaultNow()
+		.notNull(),
+	verifiedAt: timestamp("verified_at", { mode: "string" }),
 })

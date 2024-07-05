@@ -1,3 +1,5 @@
+import { sharedColumns } from "@db/shared"
+import { sql } from "drizzle-orm"
 import {
 	boolean,
 	integer,
@@ -14,14 +16,10 @@ export const community = pgTable("community", {
 	name: text("name").notNull(),
 	description: text("description"),
 	createdBy: text("created_by").references(() => authUser.id),
-	createdAt: timestamp("created_at").default(new Date()).notNull(),
-	updatedAt: timestamp("updated_at")
-		.default(new Date())
-		.notNull()
-		.$onUpdate(() => new Date()),
 	isPrivate: boolean("is_private").default(false),
-	rules: text("rules"),
 	coverImage: text("cover_image"),
+	profilePicture: text("profile_picture"),
+	...sharedColumns,
 })
 
 export const communityMember = pgTable("community_member", {
@@ -33,7 +31,8 @@ export const communityMember = pgTable("community_member", {
 		onDelete: "cascade",
 	}),
 	role: text("role").default("member"), // e.g., admin, moderator, member
-	joinedAt: timestamp("joined_at").defaultNow().notNull(),
+	joinedAt: timestamp("joined_at", { mode: "string" }).defaultNow().notNull(),
+	updatedAt: sharedColumns.updatedAt,
 })
 
 export const announcement = pgTable("announcement", {
@@ -46,7 +45,7 @@ export const announcement = pgTable("announcement", {
 		onDelete: "cascade",
 	}),
 	content: text("content").notNull(),
-	createdAt: timestamp("created_at").default(new Date()).notNull(),
+	createdAt: sharedColumns.createdAt,
 })
 
 export const message = pgTable("message", {
@@ -57,5 +56,5 @@ export const message = pgTable("message", {
 	tripId: integer("trip_id").references(() => trip.id),
 	senderId: text("sender_id").references(() => authUser.id),
 	content: text("content").notNull(),
-	sentAt: timestamp("sent_at").defaultNow().notNull(),
+	sentAt: timestamp("sent_at", { mode: "string" }).defaultNow().notNull(),
 })

@@ -1,5 +1,6 @@
+import { sharedColumns } from "@db/shared"
+import { sql } from "drizzle-orm"
 import {
-	boolean,
 	integer,
 	jsonb,
 	pgTable,
@@ -18,17 +19,13 @@ export const trip = pgTable("trip", {
 		.notNull(),
 	name: text("name").notNull(),
 	description: text("description"),
-	startDate: timestamp("start_date").notNull(),
-	endDate: timestamp("end_date"),
+	startDate: timestamp("start_date", { mode: "string" }).notNull(),
+	endDate: timestamp("end_date", { mode: "string" }),
 	startLocation: jsonb("start_location").notNull(), // { lat: number, lng: number }
 	endLocation: jsonb("end_location"), // { lat: number, lng: number }
 	route: jsonb("route"), // Array of waypoints
 	maxParticipants: integer("max_participants"),
-	createdAt: timestamp("created_at").default(new Date()).notNull(),
-	updatedAt: timestamp("updated_at")
-		.default(new Date())
-		.notNull()
-		.$onUpdate(() => new Date()),
+	...sharedColumns,
 })
 
 export const tripParticipant = pgTable("trip_participant", {
@@ -38,5 +35,6 @@ export const tripParticipant = pgTable("trip_participant", {
 		onDelete: "cascade",
 	}),
 	status: text("status").notNull(), // e.g., confirmed, pending, declined
-	joinedAt: timestamp("joined_at").defaultNow().notNull(),
+	joinedAt: timestamp("joined_at", { mode: "string" }).defaultNow().notNull(),
+	updatedAt: sharedColumns.updatedAt,
 })
