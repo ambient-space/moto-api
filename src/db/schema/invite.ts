@@ -1,6 +1,5 @@
 import { sharedColumns } from "@db/shared"
 import {
-	boolean,
 	index,
 	integer,
 	pgTable,
