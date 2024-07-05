@@ -23,24 +23,34 @@ export const community = pgTable("community", {
 
 export const communityMember = pgTable("community_member", {
 	id: serial("id").primaryKey(),
-	communityId: integer("community_id").references(() => community.id),
-	userId: text("user_id").references(() => authUser.id),
+	communityId: integer("community_id").references(() => community.id, {
+		onDelete: "cascade",
+	}),
+	userId: text("user_id").references(() => authUser.id, {
+		onDelete: "cascade",
+	}),
 	role: text("role").default("member"), // e.g., admin, moderator, member
 	joinedAt: timestamp("joined_at").defaultNow().notNull(),
 })
 
 export const announcement = pgTable("announcement", {
 	id: serial("id").primaryKey(),
-	communityId: integer("community_id").references(() => community.id),
-	tripId: integer("trip_id").references(() => trip.id),
-	createdBy: text("created_by").references(() => authUser.id),
+	communityId: integer("community_id").references(() => community.id, {
+		onDelete: "cascade",
+	}),
+	tripId: integer("trip_id").references(() => trip.id, { onDelete: "cascade" }),
+	createdBy: text("created_by").references(() => authUser.id, {
+		onDelete: "cascade",
+	}),
 	content: text("content").notNull(),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 })
 
 export const message = pgTable("message", {
 	id: serial("id").primaryKey(),
-	communityId: integer("community_id").references(() => community.id),
+	communityId: integer("community_id").references(() => community.id, {
+		onDelete: "cascade",
+	}),
 	tripId: integer("trip_id").references(() => trip.id),
 	senderId: text("sender_id").references(() => authUser.id),
 	content: text("content").notNull(),

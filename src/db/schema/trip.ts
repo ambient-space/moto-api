@@ -28,8 +28,10 @@ export const trip = pgTable("trip", {
 
 export const tripParticipant = pgTable("trip_participant", {
 	id: serial("id").primaryKey(),
-	tripId: integer("trip_id").references(() => trip.id),
-	userId: text("user_id").references(() => authUser.id),
+	tripId: integer("trip_id").references(() => trip.id, { onDelete: "cascade" }),
+	userId: text("user_id").references(() => authUser.id, {
+		onDelete: "cascade",
+	}),
 	status: text("status").notNull(), // e.g., confirmed, pending, declined
 	joinedAt: timestamp("joined_at").defaultNow().notNull(),
 })
