@@ -1,7 +1,9 @@
 import { db } from "@db/connect"
+import { authUser } from "@db/schema/auth"
 import { userProfile } from "@db/schema/user"
 import { eq } from "drizzle-orm"
 import Elysia, { t } from "elysia"
+import { omit } from "lodash"
 import { authMiddleware } from "../middleware/auth"
 
 export const userRoutes = new Elysia({ prefix: "/user" })
@@ -11,8 +13,8 @@ export const userRoutes = new Elysia({ prefix: "/user" })
 		if (!user) {
 			context.set.status = 401
 			return {
-				status: 401,
-				body: "Unauthorized",
+				error: { message: "Unauthorized" },
+				data: null,
 			}
 		}
 
@@ -33,14 +35,13 @@ export const userRoutes = new Elysia({ prefix: "/user" })
 				})
 				.returning()
 			return {
-				status: 200,
 				data: insertedUser,
 			}
 		}
 
 		return {
-			status: 200,
 			data: foundUser,
+			error: null,
 		}
 	})
 	.post(
@@ -64,8 +65,8 @@ export const userRoutes = new Elysia({ prefix: "/user" })
 			if (!foundUser || foundUser.length === 0) {
 				context.set.status = 404
 				return {
-					status: 404,
-					body: "User not found",
+					data: null,
+					error: { message: "User not found" },
 				}
 			}
 
@@ -80,8 +81,8 @@ export const userRoutes = new Elysia({ prefix: "/user" })
 				.returning()
 
 			return {
-				status: 200,
 				data: updatedUser,
+				error: null,
 			}
 		},
 		{
@@ -92,3 +93,89 @@ export const userRoutes = new Elysia({ prefix: "/user" })
 			}),
 		},
 	)
+	.patch(
+		"/",
+		async context => {
+			const { user, body } = context
+			if (!user) {
+				context.set.status = 401
+				return {
+					status: 401,
+					body: "Unauthorized",
+				}
+			}
+
+			const foundUser = await db
+				.select()
+				.from(userProfile)
+				.where(eq(userProfile.userId, user.id))
+				.execute()
+
+			if (!foundUser || foundUser.length === 0) {
+				context.set.status = 404
+				return {
+					data: null,
+					error: { message: "User not found" },
+				}
+			}
+
+			const updatedUser = await db
+				.update(userProfile)
+				.set({
+					fullName: body.fullName,
+					profilePicture: body.profilePicture,
+					bio: body.bio,
+				})
+				.where(eq(userProfile.userId, user.id))
+				.returning()
+
+			return {
+				data: omit(updatedUser[0], ["createdAt", "updatedAt"]),
+				error: null,
+			}
+		},
+		{
+			body: t.Object({
+				fullName: t.Optional(t.String()),
+				profilePicture: t.Optional(t.String()),
+				bio: t.Optional(t.String()),
+			}),
+		},
+	)
+	.delete("/", async context => {
+		const { user } = context
+		if (!user) {
+			context.set.status = 401
+			return {
+				status: 401,
+				body: "Unauthorized",
+			}
+		}
+
+		const foundUser = await db
+			.select()
+			.from(authUser)
+			.where(eq(authUser.id, user.id))
+			.execute()
+
+		if (!foundUser || foundUser.length === 0) {
+			context.set.status = 404
+			return {
+				data: null,
+				error: { message: "User not found" },
+			}
+		}
+		try {
+			await db.delete(authUser).where(eq(authUser.id, user.id))
+
+			// biome-ignore lint/suspicious/noAssignInExpressions: This is a valid use case
+			return (context.set.status = 204)
+		} catch (e) {
+			console.log(e)
+			context.set.status = 500
+			return {
+				data: null,
+				error: { message: "Internal Server Error" },
+			}
+		}
+	})
