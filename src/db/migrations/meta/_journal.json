@@ -22,6 +22,20 @@
       "when": 1720176346206,
       "tag": "0002_last_the_captain",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1720183169916,
+      "tag": "0003_optimal_hitman",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1720183268433,
+      "tag": "0004_closed_komodo",
+      "breakpoints": true
     }
   ]
 }
