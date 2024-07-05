@@ -39,16 +39,14 @@ export const tripRoutes = new Elysia({ prefix: "/trip" })
 				}
 			}
 
-			const { startDate, endDate, maxParticipants, ...data } = body
+			const { maxParticipants, ...data } = body
 
 			const insertedTrip = await db
 				.insert(trip)
 				.values({
-					startDate: new Date(startDate),
 					maxParticipants: maxParticipants || DEFAULT_MAX_PARTICIPANTS,
 					createdBy: user.id,
 					startLocation: { lat: 0, lng: 0 },
-					...(endDate ? { endDate: new Date(endDate) } : {}),
 					...data,
 				})
 				.returning()
@@ -100,23 +98,27 @@ export const tripRoutes = new Elysia({ prefix: "/trip" })
 				}
 			}
 
-			const { startDate, endDate, ...data } = body
+			try {
+				const updatedTrip = await db
+					.update(trip)
+					.set({
+						...body,
+					})
+					.where(
+						and(eq(trip.id, Number.parseInt(id)), eq(trip.createdBy, user.id)),
+					)
+					.returning()
 
-			const updatedTrip = await db
-				.update(trip)
-				.set({
-					...data,
-					...(startDate ? { startDate: new Date(startDate) } : {}),
-					...(endDate ? { endDate: new Date(endDate) } : {}),
-				})
-				.where(
-					and(eq(trip.id, Number.parseInt(id)), eq(trip.createdBy, user.id)),
-				)
-				.returning()
-
-			return {
-				data: updatedTrip,
-				error: null,
+				return {
+					data: updatedTrip,
+					error: null,
+				}
+			} catch (e) {
+				console.error(e)
+				return {
+					data: null,
+					error: e,
+				}
 			}
 		},
 		{
