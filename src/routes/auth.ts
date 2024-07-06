@@ -43,13 +43,17 @@ authRoutes
 					.execute()
 
 				const session = await lucia.createSession(id, {})
-				const sessionCookie = lucia.createSessionCookie(session.id)
-				set.headers["Set-Cookie"] = sessionCookie.serialize()
 
-				return { success: true, message: "User registered successfully" }
-			} catch (e) {
+				return {
+					data: {
+						session: session.id,
+					},
+					error: null,
+				}
+				// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+			} catch (e: any) {
 				set.status = 400
-				return { success: false, message: e }
+				return { data: null, error: { message: e.message } }
 			}
 		},
 		{
@@ -62,7 +66,7 @@ authRoutes
 	)
 	.post(
 		"/login",
-		async ({ body, set, ...context }) => {
+		async ({ body, set }) => {
 			const { email, password } = body
 
 			try {
@@ -101,14 +105,17 @@ authRoutes
 				}
 
 				const session = await lucia.createSession(user[0].id, {})
-				const sessionCookie = lucia.createSessionCookie(session.id)
 
-				set.headers["Set-Cookie"] = sessionCookie.serialize()
-
-				return { success: true, message: "User logged successfully" }
-			} catch (e) {
+				return {
+					data: {
+						session: session.id,
+					},
+					error: null,
+				}
+				// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+			} catch (e: any) {
 				set.status = 400
-				return { success: false, message: "Invalid email or password" }
+				return { data: null, error: { message: e.message } }
 			}
 		},
 		{

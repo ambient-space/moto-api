@@ -22,8 +22,8 @@ export const authMiddleware = new Elysia().derive(
 		// }
 
 		// use headers instead of Cookie API to prevent type coercion
-		const cookieHeader = context.request.headers.get("Cookie") ?? ""
-		const sessionId = lucia.readSessionCookie(cookieHeader)
+		const sessionHeader = context.request.headers.get("Authorization") ?? ""
+		const sessionId = lucia.readBearerToken(sessionHeader)
 		if (!sessionId) {
 			return {
 				user: null,
@@ -33,18 +33,6 @@ export const authMiddleware = new Elysia().derive(
 
 		const { session, user } = await lucia.validateSession(sessionId)
 		if (session?.fresh) {
-			const sessionCookie = lucia.createSessionCookie(session.id)
-			context.cookie[sessionCookie.name].set({
-				value: sessionCookie.value,
-				...sessionCookie.attributes,
-			})
-		}
-		if (!session) {
-			const sessionCookie = lucia.createBlankSessionCookie()
-			context.cookie[sessionCookie.name].set({
-				value: sessionCookie.value,
-				...sessionCookie.attributes,
-			})
 		}
 		return {
 			user,
