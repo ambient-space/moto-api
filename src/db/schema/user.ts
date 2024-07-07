@@ -1,5 +1,4 @@
 import { sharedColumns } from "@db/shared"
-import { sql } from "drizzle-orm"
 import { pgTable, serial, text, timestamp } from "drizzle-orm/pg-core"
 import { authUser } from "./auth"
 
@@ -10,6 +9,7 @@ export const userProfile = pgTable("user_profile", {
 	fullName: text("full_name"),
 	profilePicture: text("profile_picture"),
 	bio: text("bio"),
+	coverImage: text("cover_image"),
 	...sharedColumns,
 })
 
