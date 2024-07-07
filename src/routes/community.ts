@@ -14,11 +14,7 @@ export const communityRoutes = new Elysia({ prefix: "/community" })
 				data: null,
 			}
 		}
-		const foundCommunities = await db
-			.select()
-			.from(community)
-			.where(eq(community.createdBy, user.id))
-			.execute()
+		const foundCommunities = await db.select().from(community)
 		return {
 			data: foundCommunities,
 			error: null,
@@ -51,7 +47,7 @@ export const communityRoutes = new Elysia({ prefix: "/community" })
 			body: t.Object({
 				name: t.String(),
 				description: t.String(),
-				isPrivate: t.Boolean(),
+				isPrivate: t.Optional(t.Boolean()),
 				profilePicture: t.String(),
 				coverImage: t.String(),
 			}),
