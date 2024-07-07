@@ -1,43 +1,56 @@
 import { db } from "@db/connect"
 import { authUser } from "@db/schema/auth"
 import { lucia } from "@lib/auth/lucia"
-import { isValidEmail } from "@lib/shared"
 import { eq } from "drizzle-orm"
 import { Elysia, t } from "elysia"
 import { generateIdFromEntropySize } from "lucia"
+import { z } from "zod"
 
 export const authRoutes = new Elysia({ prefix: "/auth" })
+
+const signupParams = z
+	.object({
+		username: z
+			.string({ required_error: "Username is required" })
+			.min(3, "Username must be at least 3 characters"),
+		email: z.string().email("Invalid email address").toLowerCase(),
+		password: z.string().min(6, "Password must be at least 6 characters"),
+		confirmPassword: z.string(),
+	})
+	.superRefine((data, ctx) => {
+		if (data.password !== data.confirmPassword)
+			ctx.addIssue({
+				code: "custom",
+				message: "The passwords did not match",
+				path: ["confirmPassword"],
+			})
+	})
 
 authRoutes
 	.post(
 		"/register",
 		async ({ body, set }) => {
-			const { username, email, password } = body
+			const validatedInput = signupParams.safeParse(body)
+
+			if (!validatedInput.success) {
+				set.status = 400
+				return {
+					error: { fields: validatedInput.error.flatten().fieldErrors },
+					data: null,
+				}
+			}
 
 			try {
-				if (!email || typeof email !== "string" || !isValidEmail(email)) {
-					return new Response("Invalid email", {
-						status: 400,
-					})
-				}
-				if (!password || typeof password !== "string" || password.length < 6) {
-					return new Response("Invalid password", {
-						status: 400,
-					})
-				}
-				if (!username || typeof username !== "string" || username.length < 3) {
-					return new Response("Invalid username", {
-						status: 400,
-					})
-				}
-				const hashedPassword = await Bun.password.hash(password)
+				const hashedPassword = await Bun.password.hash(
+					validatedInput.data.password,
+				)
 				const id = generateIdFromEntropySize(16)
 				await db
 					.insert(authUser)
 					.values({
 						id,
-						username,
-						email,
+						username: validatedInput.data.username,
+						email: validatedInput.data.email,
 						hashedPassword,
 					})
 					.execute()
@@ -61,6 +74,7 @@ authRoutes
 				username: t.String(),
 				email: t.String(),
 				password: t.String(),
+				confirmPassword: t.String(),
 			}),
 		},
 	)
@@ -71,14 +85,12 @@ authRoutes
 
 			try {
 				if (!email || typeof email !== "string") {
-					return new Response("Invalid email", {
-						status: 400,
-					})
+					set.status = 400
+					return { data: null, error: { message: "Invalid email or password" } }
 				}
 				if (!password || typeof password !== "string") {
-					return new Response(null, {
-						status: 400,
-					})
+					set.status = 400
+					return { data: null, error: { message: "Invalid email or password" } }
 				}
 
 				const user = await db
@@ -88,9 +100,8 @@ authRoutes
 					.execute()
 
 				if (!user || user.length === 0 || !user[0].hashedPassword) {
-					return new Response("Invalid email or password", {
-						status: 400,
-					})
+					set.status = 400
+					return { data: null, error: { message: "Invalid email or password" } }
 				}
 
 				const validPassword = await Bun.password.verify(
@@ -99,9 +110,8 @@ authRoutes
 				)
 
 				if (!validPassword) {
-					return new Response("Invalid email or password", {
-						status: 400,
-					})
+					set.status = 400
+					return { data: null, error: { message: "Invalid email or password" } }
 				}
 
 				const session = await lucia.createSession(user[0].id, {})
