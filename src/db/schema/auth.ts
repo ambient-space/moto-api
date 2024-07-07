@@ -1,6 +1,5 @@
 import { sharedColumns } from "@db/shared"
 import { DrizzlePostgreSQLAdapter } from "@lucia-auth/adapter-drizzle"
-import { sql } from "drizzle-orm"
 import { pgTable, text, timestamp } from "drizzle-orm/pg-core"
 import { db } from "../connect"
 

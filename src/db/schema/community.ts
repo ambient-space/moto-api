@@ -1,5 +1,4 @@
 import { sharedColumns } from "@db/shared"
-import { sql } from "drizzle-orm"
 import {
 	boolean,
 	integer,
