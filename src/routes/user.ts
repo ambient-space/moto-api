@@ -18,30 +18,49 @@ export const userRoutes = new Elysia({ prefix: "/user" })
 			}
 		}
 
-		const foundUser = await db
-			.select()
-			.from(userProfile)
-			.where(eq(userProfile.userId, user.id))
-			.execute()
+		try {
+			const aUser = (
+				await db
+					.select({ username: authUser.username, email: authUser.email })
+					.from(authUser)
+					.where(eq(authUser.id, user.id))
+					.execute()
+			)[0]
+			const foundUser = await db
+				.select()
+				.from(userProfile)
+				.where(eq(userProfile.userId, user.id))
 
-		if (!foundUser || foundUser.length === 0) {
-			const insertedUser = await db
-				.insert(userProfile)
-				.values({
-					userId: user.id,
-					fullName: "",
-					profilePicture: "",
-					bio: "",
-				})
-				.returning()
-			return {
-				data: insertedUser,
+			if (!foundUser || foundUser.length === 0) {
+				const insertedUser = (
+					await db
+						.insert(userProfile)
+						.values({
+							userId: user.id,
+							fullName: "",
+							profilePicture: "",
+							bio: "",
+							coverImage: "",
+						})
+						.returning()
+				)[0]
+				return {
+					data: { ...aUser, ...insertedUser },
+					error: null,
+				}
 			}
-		}
 
-		return {
-			data: foundUser,
-			error: null,
+			return {
+				data: { ...aUser, ...foundUser[0] },
+				error: null,
+			}
+		} catch (err) {
+			console.error(err)
+			context.set.status = 500
+			return {
+				error: err,
+				data: null,
+			}
 		}
 	})
 	.post(
@@ -76,6 +95,7 @@ export const userRoutes = new Elysia({ prefix: "/user" })
 					fullName: body.fullName,
 					profilePicture: body.profilePicture,
 					bio: body.bio,
+					coverImage: body.coverImage,
 				})
 				.where(eq(userProfile.userId, user.id))
 				.returning()
@@ -90,6 +110,7 @@ export const userRoutes = new Elysia({ prefix: "/user" })
 				fullName: t.String(),
 				profilePicture: t.String(),
 				bio: t.String(),
+				coverImage: t.String(),
 			}),
 		},
 	)
@@ -139,6 +160,7 @@ export const userRoutes = new Elysia({ prefix: "/user" })
 				fullName: t.Optional(t.String()),
 				profilePicture: t.Optional(t.String()),
 				bio: t.Optional(t.String()),
+				coverImage: t.Optional(t.String()),
 			}),
 		},
 	)
