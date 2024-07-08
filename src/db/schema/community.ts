@@ -1,4 +1,5 @@
 import { sharedColumns } from "@db/shared"
+import { relations } from "drizzle-orm"
 import {
 	boolean,
 	integer,
@@ -9,6 +10,7 @@ import {
 } from "drizzle-orm/pg-core"
 import { authUser } from "./auth"
 import { trip } from "./trip"
+import { userProfile } from "./user"
 
 export const community = pgTable("community", {
 	id: serial("id").primaryKey(),
@@ -23,9 +25,11 @@ export const community = pgTable("community", {
 
 export const communityMember = pgTable("community_member", {
 	id: serial("id").primaryKey(),
-	communityId: integer("community_id").references(() => community.id, {
-		onDelete: "cascade",
-	}),
+	communityId: integer("community_id")
+		.notNull()
+		.references(() => community.id, {
+			onDelete: "cascade",
+		}),
 	userId: text("user_id").references(() => authUser.id, {
 		onDelete: "cascade",
 	}),
@@ -33,6 +37,28 @@ export const communityMember = pgTable("community_member", {
 	joinedAt: timestamp("joined_at", { mode: "string" }).defaultNow().notNull(),
 	updatedAt: sharedColumns.updatedAt,
 })
+
+export const communityRelations = relations(community, ({ many }) => ({
+	members: many(communityMember),
+}))
+
+export const communityMemberRelations = relations(
+	communityMember,
+	({ one }) => ({
+		authUser: one(authUser, {
+			fields: [communityMember.userId],
+			references: [authUser.id],
+		}),
+		profile: one(userProfile, {
+			fields: [communityMember.userId],
+			references: [userProfile.userId],
+		}),
+		community: one(community, {
+			fields: [communityMember.communityId],
+			references: [community.id],
+		}),
+	}),
+)
 
 export const announcement = pgTable("announcement", {
 	id: serial("id").primaryKey(),
