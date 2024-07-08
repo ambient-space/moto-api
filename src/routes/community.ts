@@ -1,6 +1,6 @@
 import { db } from "@db/connect"
-import { community } from "@db/schema/community"
-import { eq } from "drizzle-orm"
+import { community, communityMember } from "@db/schema/community"
+import { count, eq } from "drizzle-orm"
 import Elysia, { t } from "elysia"
 import { authMiddleware } from "../middleware/auth"
 
@@ -17,6 +17,56 @@ export const communityRoutes = new Elysia({ prefix: "/community" })
 		const foundCommunities = await db.select().from(community)
 		return {
 			data: foundCommunities,
+			error: null,
+		}
+	})
+	.get("/overview", async ({ user, set }) => {
+		if (!user) {
+			set.status = 401
+			return {
+				error: { message: "Unauthorized" },
+				data: null,
+			}
+		}
+
+		const res = await db.transaction(async trx => {
+			const communities = await trx
+				.select({
+					id: community.id,
+					name: community.name,
+					profilePicture: community.profilePicture,
+					coverImage: community.coverImage,
+					description: community.description,
+				})
+				.from(community)
+				.limit(5)
+
+			for (let i = 0; i < communities.length; i++) {
+				const m = await trx
+					.select({
+						id: communityMember.id,
+						userId: communityMember.userId,
+						role: communityMember.role,
+						communityId: communityMember.communityId,
+					})
+					.from(communityMember)
+					.where(eq(communityMember.communityId, communities[i].id))
+					.limit(3)
+				const c = await trx
+					.select({ count: count() })
+					.from(communityMember)
+					.where(eq(communityMember.communityId, communities[i].id))
+
+				// @ts-expect-error error
+				communities[i].members = m
+				// @ts-expect-error error
+				communities[i].memberCount = c[0].count
+			}
+			return communities
+		})
+
+		return {
+			data: res,
 			error: null,
 		}
 	})
