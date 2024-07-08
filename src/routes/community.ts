@@ -21,6 +21,52 @@ export const communityRoutes = new Elysia({ prefix: "/community" })
 		}
 	})
 	.post(
+		"/join/:id",
+		async ({ user, params, set }) => {
+			if (!user) {
+				set.status = 401
+				return {
+					status: 401,
+					body: "Unauthorized",
+				}
+			}
+			const { id } = params
+			const existingMember = await db.query.communityMember.findFirst({
+				where: (communityMember, { eq, and }) =>
+					and(
+						eq(communityMember.userId, user.id),
+						eq(communityMember.communityId, Number.parseInt(id)),
+					),
+			})
+
+			if (existingMember !== undefined) {
+				set.status = 400
+				return {
+					data: null,
+					error: { message: "Already a member of this community" },
+				}
+			}
+
+			const insertedMember = await db
+				.insert(communityMember)
+				.values({
+					communityId: Number.parseInt(id),
+					userId: user.id,
+					role: "member",
+				})
+				.returning()
+			return {
+				data: insertedMember,
+				error: null,
+			}
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+		},
+	)
+	.post(
 		"/",
 		async ({ user, body, set }) => {
 			if (!user) {
