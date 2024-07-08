@@ -1,4 +1,5 @@
-import { adapter, type authUser } from "@db/schema/auth"
+import { adapter } from "@db/authAdapter"
+import type { authUser } from "@db/schema/auth"
 import { Lucia, TimeSpan } from "lucia"
 
 // Initialize Lucia
