@@ -1,7 +1,5 @@
 import { sharedColumns } from "@db/shared"
-import { DrizzlePostgreSQLAdapter } from "@lucia-auth/adapter-drizzle"
 import { pgTable, text, timestamp } from "drizzle-orm/pg-core"
-import { db } from "../connect"
 
 export const authUser = pgTable("auth_user", {
 	id: text("id").primaryKey(),
@@ -22,5 +20,3 @@ export const authSession = pgTable("auth_session", {
 	}).notNull(),
 	...sharedColumns,
 })
-
-export const adapter = new DrizzlePostgreSQLAdapter(db, authSession, authUser)
