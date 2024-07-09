@@ -1,5 +1,5 @@
 {
-  "id": "2552d1e2-5077-4206-bde9-157bbb15b6ca",
+  "id": "e02146b7-bc12-43ed-95dc-5914fd2b06a4",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -25,6 +25,20 @@
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
         }
       },
       "indexes": {},
@@ -39,7 +53,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -73,6 +87,20 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
         }
       },
       "indexes": {},
@@ -95,8 +123,8 @@
         }
       }
     },
-    "public.announcements": {
-      "name": "announcements",
+    "public.announcement": {
+      "name": "announcement",
       "schema": "",
       "columns": {
         "id": {
@@ -139,9 +167,9 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "announcements_community_id_community_id_fk": {
-          "name": "announcements_community_id_community_id_fk",
-          "tableFrom": "announcements",
+        "announcement_community_id_community_id_fk": {
+          "name": "announcement_community_id_community_id_fk",
+          "tableFrom": "announcement",
           "tableTo": "community",
           "columnsFrom": [
             "community_id"
@@ -149,12 +177,12 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "announcements_trip_id_trip_id_fk": {
-          "name": "announcements_trip_id_trip_id_fk",
-          "tableFrom": "announcements",
+        "announcement_trip_id_trip_id_fk": {
+          "name": "announcement_trip_id_trip_id_fk",
+          "tableFrom": "announcement",
           "tableTo": "trip",
           "columnsFrom": [
             "trip_id"
@@ -162,12 +190,12 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "announcements_created_by_auth_user_id_fk": {
-          "name": "announcements_created_by_auth_user_id_fk",
-          "tableFrom": "announcements",
+        "announcement_created_by_auth_user_id_fk": {
+          "name": "announcement_created_by_auth_user_id_fk",
+          "tableFrom": "announcement",
           "tableTo": "auth_user",
           "columnsFrom": [
             "created_by"
@@ -175,7 +203,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -210,6 +238,25 @@
           "primaryKey": false,
           "notNull": false
         },
+        "is_private": {
+          "name": "is_private",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "cover_image": {
+          "name": "cover_image",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "profile_picture": {
+          "name": "profile_picture",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -223,25 +270,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
-        },
-        "is_private": {
-          "name": "is_private",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": false,
-          "default": false
-        },
-        "rules": {
-          "name": "rules",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "cover_image": {
-          "name": "cover_image",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
         }
       },
       "indexes": {},
@@ -263,8 +291,8 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "public.community_members": {
-      "name": "community_members",
+    "public.community_member": {
+      "name": "community_member",
       "schema": "",
       "columns": {
         "id": {
@@ -277,7 +305,7 @@
           "name": "community_id",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "user_id": {
           "name": "user_id",
@@ -287,13 +315,20 @@
         },
         "role": {
           "name": "role",
-          "type": "text",
+          "type": "community_role",
+          "typeSchema": "public",
           "primaryKey": false,
-          "notNull": false,
-          "default": "'member'"
+          "notNull": false
         },
         "joined_at": {
           "name": "joined_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
@@ -302,9 +337,9 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "community_members_community_id_community_id_fk": {
-          "name": "community_members_community_id_community_id_fk",
-          "tableFrom": "community_members",
+        "community_member_community_id_community_id_fk": {
+          "name": "community_member_community_id_community_id_fk",
+          "tableFrom": "community_member",
           "tableTo": "community",
           "columnsFrom": [
             "community_id"
@@ -312,12 +347,12 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "community_members_user_id_auth_user_id_fk": {
-          "name": "community_members_user_id_auth_user_id_fk",
-          "tableFrom": "community_members",
+        "community_member_user_id_auth_user_id_fk": {
+          "name": "community_member_user_id_auth_user_id_fk",
+          "tableFrom": "community_member",
           "tableTo": "auth_user",
           "columnsFrom": [
             "user_id"
@@ -325,15 +360,15 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "public.messages": {
-      "name": "messages",
+    "public.message": {
+      "name": "message",
       "schema": "",
       "columns": {
         "id": {
@@ -376,9 +411,9 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "messages_community_id_community_id_fk": {
-          "name": "messages_community_id_community_id_fk",
-          "tableFrom": "messages",
+        "message_community_id_community_id_fk": {
+          "name": "message_community_id_community_id_fk",
+          "tableFrom": "message",
           "tableTo": "community",
           "columnsFrom": [
             "community_id"
@@ -386,12 +421,12 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "messages_trip_id_trip_id_fk": {
-          "name": "messages_trip_id_trip_id_fk",
-          "tableFrom": "messages",
+        "message_trip_id_trip_id_fk": {
+          "name": "message_trip_id_trip_id_fk",
+          "tableFrom": "message",
           "tableTo": "trip",
           "columnsFrom": [
             "trip_id"
@@ -402,9 +437,9 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "messages_sender_id_auth_user_id_fk": {
-          "name": "messages_sender_id_auth_user_id_fk",
-          "tableFrom": "messages",
+        "message_sender_id_auth_user_id_fk": {
+          "name": "message_sender_id_auth_user_id_fk",
+          "tableFrom": "message",
           "tableTo": "auth_user",
           "columnsFrom": [
             "sender_id"
@@ -413,6 +448,345 @@
             "id"
           ],
           "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.kyc_document": {
+      "name": "kyc_document",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "document_type": {
+          "name": "document_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "document_number": {
+          "name": "document_number",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "verification_status": {
+          "name": "verification_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "uploaded_at": {
+          "name": "uploaded_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "verified_at": {
+          "name": "verified_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "kyc_document_user_id_auth_user_id_fk": {
+          "name": "kyc_document_user_id_auth_user_id_fk",
+          "tableFrom": "kyc_document",
+          "tableTo": "auth_user",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.user_profile": {
+      "name": "user_profile",
+      "schema": "",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "full_name": {
+          "name": "full_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "profile_picture": {
+          "name": "profile_picture",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "bio": {
+          "name": "bio",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cover_image": {
+          "name": "cover_image",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "user_profile_user_id_auth_user_id_fk": {
+          "name": "user_profile_user_id_auth_user_id_fk",
+          "tableFrom": "user_profile",
+          "tableTo": "auth_user",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.invite": {
+      "name": "invite",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "entity_type": {
+          "name": "entity_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "entity_id": {
+          "name": "entity_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "inviter_id": {
+          "name": "inviter_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "invitee_email": {
+          "name": "invitee_email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "invite_entity_type_idx": {
+          "name": "invite_entity_type_idx",
+          "columns": [
+            {
+              "expression": "entity_type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "invite_entity_id_idx": {
+          "name": "invite_entity_id_idx",
+          "columns": [
+            {
+              "expression": "entity_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "invite_inviter_id_auth_user_id_fk": {
+          "name": "invite_inviter_id_auth_user_id_fk",
+          "tableFrom": "invite",
+          "tableTo": "auth_user",
+          "columnsFrom": [
+            "inviter_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.join_request": {
+      "name": "join_request",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "entity_type": {
+          "name": "entity_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "entity_id": {
+          "name": "entity_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
+        },
+        "message": {
+          "name": "message",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "join_request_entity_type_idx": {
+          "name": "join_request_entity_type_idx",
+          "columns": [
+            {
+              "expression": "entity_type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "join_request_entity_id_idx": {
+          "name": "join_request_entity_id_idx",
+          "columns": [
+            {
+              "expression": "entity_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "join_request_user_id_auth_user_id_fk": {
+          "name": "join_request_user_id_auth_user_id_fk",
+          "tableFrom": "join_request",
+          "tableTo": "auth_user",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -439,7 +813,7 @@
           "name": "created_by",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "name": {
           "name": "name",
@@ -550,7 +924,7 @@
           "name": "trip_id",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "user_id": {
           "name": "user_id",
@@ -558,14 +932,30 @@
           "primaryKey": false,
           "notNull": false
         },
+        "role": {
+          "name": "role",
+          "type": "trip_role",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
         "status": {
           "name": "status",
-          "type": "text",
+          "type": "trip_status",
+          "typeSchema": "public",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false,
+          "default": "'confirmed'"
         },
         "joined_at": {
           "name": "joined_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
@@ -584,7 +974,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         },
         "trip_participant_user_id_auth_user_id_fk": {
@@ -597,136 +987,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "public.kyc_document": {
-      "name": "kyc_document",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "document_type": {
-          "name": "document_type",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "document_number": {
-          "name": "document_number",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "verification_status": {
-          "name": "verification_status",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "uploaded_at": {
-          "name": "uploaded_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "verified_at": {
-          "name": "verified_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "kyc_document_user_id_auth_user_id_fk": {
-          "name": "kyc_document_user_id_auth_user_id_fk",
-          "tableFrom": "kyc_document",
-          "tableTo": "auth_user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "public.user_profile": {
-      "name": "user_profile",
-      "schema": "",
-      "columns": {
-        "user_id": {
-          "name": "user_id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "full_name": {
-          "name": "full_name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "profile_picture": {
-          "name": "profile_picture",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "bio": {
-          "name": "bio",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "user_profile_user_id_auth_user_id_fk": {
-          "name": "user_profile_user_id_auth_user_id_fk",
-          "tableFrom": "user_profile",
-          "tableTo": "auth_user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -778,6 +1039,20 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
         }
       },
       "indexes": {},
@@ -792,7 +1067,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -800,7 +1075,34 @@
       "uniqueConstraints": {}
     }
   },
-  "enums": {},
+  "enums": {
+    "public.community_role": {
+      "name": "community_role",
+      "schema": "public",
+      "values": [
+        "admin",
+        "moderator",
+        "member"
+      ]
+    },
+    "public.trip_role": {
+      "name": "trip_role",
+      "schema": "public",
+      "values": [
+        "organizer",
+        "participant"
+      ]
+    },
+    "public.trip_status": {
+      "name": "trip_status",
+      "schema": "public",
+      "values": [
+        "confirmed",
+        "pending",
+        "declined"
+      ]
+    }
+  },
   "schemas": {},
   "_meta": {
     "columns": {},

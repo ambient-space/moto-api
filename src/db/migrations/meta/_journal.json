@@ -5,50 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1720163067027,
-      "tag": "0000_giant_overlord",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1720170247798,
-      "tag": "0001_lean_agent_zero",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1720176346206,
-      "tag": "0002_last_the_captain",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1720183169916,
-      "tag": "0003_optimal_hitman",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1720183268433,
-      "tag": "0004_closed_komodo",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1720189740022,
-      "tag": "0005_fantastic_pretty_boy",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1720359977155,
-      "tag": "0006_square_whirlwind",
+      "when": 1720508069968,
+      "tag": "0000_nappy_scourge",
       "breakpoints": true
     }
   ]
