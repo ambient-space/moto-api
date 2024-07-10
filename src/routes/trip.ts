@@ -1,6 +1,6 @@
 import { db } from "@db/connect"
-import { trip } from "@db/schema/trip"
-import { and, eq } from "drizzle-orm"
+import { trip, tripParticipant } from "@db/schema/trip"
+import { and, count, eq } from "drizzle-orm"
 import Elysia, { t } from "elysia"
 import { authMiddleware } from "../middleware/auth"
 
@@ -8,6 +8,7 @@ const DEFAULT_MAX_PARTICIPANTS = 5
 
 export const tripRoutes = new Elysia({ prefix: "/trip" })
 	.use(authMiddleware)
+	// GET /trip (get all trips)
 	.get("/", async ({ user, set }) => {
 		if (!user) {
 			set.status = 401
@@ -28,6 +29,7 @@ export const tripRoutes = new Elysia({ prefix: "/trip" })
 			error: null,
 		}
 	})
+	// POST /trip (create a trip)
 	.post(
 		"/",
 		async ({ user, body, set }) => {
@@ -185,6 +187,7 @@ export const tripRoutes = new Elysia({ prefix: "/trip" })
 			}),
 		},
 	)
+	// GET /trip/:id (trip details with messages)
 	.get(
 		"/:id",
 		async ({ user, params: { id }, set }) => {
@@ -217,6 +220,7 @@ export const tripRoutes = new Elysia({ prefix: "/trip" })
 			}),
 		},
 	)
+	// PATCH /trip/:id (update a trip)
 	.patch(
 		"/:id",
 		async ({ user, body, set, params: { id } }) => {
@@ -285,6 +289,7 @@ export const tripRoutes = new Elysia({ prefix: "/trip" })
 			}),
 		},
 	)
+	// DELETE /trip/:id (delete a trip)
 	.delete(
 		"/:id",
 		async ({ user, set, params: { id } }) => {
