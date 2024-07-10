@@ -28,16 +28,25 @@ export const trip = pgTable("trip", {
 	...sharedColumns,
 })
 
+export const validTripStatuses = ["confirmed", "pending", "declined"] as const
+export const validTripStatusEnum = pgEnum("trip_status", validTripStatuses)
+
+export const validTripRoles = ["organizer", "participant"] as const
+export const validTripRoleEnum = pgEnum("trip_role", validTripRoles)
+
 export const tripParticipant = pgTable("trip_participant", {
 	id: serial("id").primaryKey(),
-	tripId: integer("trip_id").references(() => trip.id, { onDelete: "cascade" }),
+	tripId: integer("trip_id")
+		.notNull()
+		.references(() => trip.id, { onDelete: "cascade" }),
 	userId: text("user_id").references(() => authUser.id, {
 		onDelete: "cascade",
 	}),
-	status: text("status").notNull(), // e.g., confirmed, pending, declined
-	joinedAt: timestamp("joined_at", { mode: "string" }).defaultNow().notNull(),
+	role: validTripRoleEnum("role"), // e.g., organizer, participant
+	joinedAt: timestamp("joined_at", { mode: "string" }).defaultNow(),
 	updatedAt: sharedColumns.updatedAt,
 })
+
 export const tripRelations = relations(trip, ({ many, one }) => ({
 	participants: many(tripParticipant),
 	authUser: one(authUser, {
