@@ -116,6 +116,66 @@ export const communityRoutes = new Elysia({ prefix: "/community" })
 			}),
 		},
 	)
+	.get(
+		"/:id",
+		async ({ user, params, set }) => {
+			if (!user) {
+				set.status = 401
+				return {
+					status: 401,
+					body: "Unauthorized",
+				}
+			}
+
+			const { id } = params
+			// const isUserMember = await db.query.communityMember.findFirst({
+			// 	where: (communityMember, { eq, and }) =>
+			// 		and(
+			// 			eq(communityMember.userId, user.id),
+			// 			eq(communityMember.communityId, Number.parseInt(id)),
+			// 		),
+			// })
+
+			// if (!isUserMember) {
+			// 	set.status = 401
+			// 	return {
+			// 		status: 401,
+			// 		body: "Unauthorized",
+			// 	}
+			// }
+
+			const foundCommunityWithMembers = await db.query.community.findFirst({
+				where: (community, { eq }) => eq(community.id, Number.parseInt(id)),
+				with: {
+					trips: {
+						where: (trip, { eq }) => eq(trip.communityId, Number.parseInt(id)),
+					},
+					members: {
+						where: (communityMember, { eq }) =>
+							eq(communityMember.communityId, Number.parseInt(id)),
+						with: {
+							profile: {
+								columns: {
+									fullName: true,
+									profilePicture: true,
+								},
+							},
+						},
+					},
+				},
+			})
+
+			return {
+				data: foundCommunityWithMembers,
+				error: null,
+			}
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+		},
+	)
 	.post(
 		"/",
 		async ({ user, body, set }) => {
