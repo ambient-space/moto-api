@@ -87,6 +87,53 @@ export const tripRoutes = new Elysia({ prefix: "/trip" })
 			}),
 		},
 	)
+	// POST /trip/join/:id (join a trip)
+	.post(
+		"/join/:id",
+		async ({ user, params, set }) => {
+			if (!user) {
+				set.status = 401
+				return {
+					status: 401,
+					body: "Unauthorized",
+				}
+			}
+			const { id } = params
+			const existingMember = await db.query.tripParticipant.findFirst({
+				where: (tripParticipant, { eq, and }) =>
+					and(
+						eq(tripParticipant.userId, user.id),
+						eq(tripParticipant.tripId, Number.parseInt(id)),
+					),
+			})
+
+			if (existingMember !== undefined) {
+				set.status = 400
+				return {
+					data: null,
+					error: { message: "Already a member of this trip" },
+				}
+			}
+
+			const insertedMember = await db
+				.insert(tripParticipant)
+				.values({
+					userId: user.id,
+					tripId: Number.parseInt(id),
+					role: "participant",
+				})
+				.returning()
+			return {
+				data: insertedMember,
+				error: null,
+			}
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+		},
+	)
 	.get(
 		"/:id",
 		async ({ user, params: { id }, set }) => {
