@@ -3,6 +3,7 @@ import { relations } from "drizzle-orm"
 import {
 	boolean,
 	integer,
+	pgEnum,
 	pgTable,
 	serial,
 	text,
@@ -23,6 +24,12 @@ export const community = pgTable("community", {
 	...sharedColumns,
 })
 
+export const validCommunityRoles = ["admin", "moderator", "member"] as const
+export const validCommunityRoleEnum = pgEnum(
+	"community_role",
+	validCommunityRoles,
+)
+
 export const communityMember = pgTable("community_member", {
 	id: serial("id").primaryKey(),
 	communityId: integer("community_id")
@@ -33,7 +40,7 @@ export const communityMember = pgTable("community_member", {
 	userId: text("user_id").references(() => authUser.id, {
 		onDelete: "cascade",
 	}),
-	role: text("role").default("member"), // e.g., admin, moderator, member
+	role: validCommunityRoleEnum("role"), // e.g., admin, moderator, member
 	joinedAt: timestamp("joined_at", { mode: "string" }).defaultNow().notNull(),
 	updatedAt: sharedColumns.updatedAt,
 })
