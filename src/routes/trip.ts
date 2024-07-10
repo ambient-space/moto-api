@@ -87,6 +87,38 @@ export const tripRoutes = new Elysia({ prefix: "/trip" })
 			}),
 		},
 	)
+	.get(
+		"/:id",
+		async ({ user, params: { id }, set }) => {
+			if (!user) {
+				set.status = 401
+				return {
+					error: { message: "Unauthorized" },
+					data: null,
+				}
+			}
+
+			const foundTripWithParticipants = await db.query.trip.findFirst({
+				where: (trip, { eq }) => eq(trip.id, Number.parseInt(id)),
+				with: {
+					participants: {
+						where: (tripParticipant, { eq }) =>
+							eq(tripParticipant.tripId, Number.parseInt(id)),
+					},
+				},
+			})
+
+			return {
+				data: foundTripWithParticipants,
+				error: null,
+			}
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+		},
+	)
 	.patch(
 		"/:id",
 		async ({ user, body, set, params: { id } }) => {
