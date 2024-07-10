@@ -87,6 +87,57 @@ export const tripRoutes = new Elysia({ prefix: "/trip" })
 			}),
 		},
 	)
+	// GET /trip/overview (get 5 most recent trips)
+	.get("/overview", async ({ user, set }) => {
+		if (!user) {
+			set.status = 401
+			return {
+				error: { message: "Unauthorized" },
+				data: null,
+			}
+		}
+
+		const res = await db.transaction(async trx => {
+			const trips = await trx
+				.select({
+					id: trip.id,
+					name: trip.name,
+					description: trip.description,
+					startDate: trip.startDate,
+					startLocation: trip.startLocation,
+					endLocation: trip.endLocation,
+				})
+				.from(trip)
+				.limit(5)
+
+			for (let i = 0; i < trips.length; i++) {
+				const m = await trx
+					.select({
+						id: tripParticipant.id,
+						userId: tripParticipant.userId,
+						tripId: tripParticipant.tripId,
+					})
+					.from(tripParticipant)
+					.where(eq(tripParticipant.tripId, trips[i].id))
+					.limit(3)
+				const c = await trx
+					.select({ count: count() })
+					.from(tripParticipant)
+					.where(eq(tripParticipant.tripId, trips[i].id))
+
+				// @ts-expect-error error
+				trips[i].participants = m
+				// @ts-expect-error error
+				trips[i].participantCount = c[0].count
+			}
+			return trips
+		})
+
+		return {
+			data: res,
+			error: null,
+		}
+	})
 	// POST /trip/join/:id (join a trip)
 	.post(
 		"/join/:id",
