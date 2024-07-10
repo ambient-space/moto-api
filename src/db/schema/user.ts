@@ -1,6 +1,9 @@
 import { sharedColumns } from "@db/shared"
+import { relations } from "drizzle-orm"
 import { pgTable, serial, text, timestamp } from "drizzle-orm/pg-core"
 import { authUser } from "./auth"
+import { communityMember } from "./community"
+import { tripParticipant } from "./trip"
 
 export const userProfile = pgTable("user_profile", {
 	userId: text("user_id")
@@ -12,6 +15,16 @@ export const userProfile = pgTable("user_profile", {
 	coverImage: text("cover_image"),
 	...sharedColumns,
 })
+
+export const userProfileRelations = relations(userProfile, ({ one, many }) => ({
+	authUser: one(authUser, {
+		fields: [userProfile.userId],
+		references: [authUser.id],
+	}),
+	kycDocuments: many(kycDocument),
+	tripParticipant: many(tripParticipant),
+	communityMember: many(communityMember),
+}))
 
 export const kycDocument = pgTable("kyc_document", {
 	id: serial("id").primaryKey(),
