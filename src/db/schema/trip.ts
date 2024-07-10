@@ -1,8 +1,9 @@
 import { sharedColumns } from "@db/shared"
-import { sql } from "drizzle-orm"
+import { relations } from "drizzle-orm"
 import {
 	integer,
 	jsonb,
+	pgEnum,
 	pgTable,
 	serial,
 	text,
@@ -10,6 +11,7 @@ import {
 } from "drizzle-orm/pg-core"
 import { authUser } from "./auth"
 import { community } from "./community"
+import { userProfile } from "./user"
 
 export const trip = pgTable("trip", {
 	id: serial("id").primaryKey(),
@@ -62,3 +64,21 @@ export const tripRelations = relations(trip, ({ many, one }) => ({
 		references: [community.id],
 	}),
 }))
+
+export const tripParticipantRelations = relations(
+	tripParticipant,
+	({ one }) => ({
+		authUser: one(authUser, {
+			fields: [tripParticipant.userId],
+			references: [authUser.id],
+		}),
+		profile: one(userProfile, {
+			fields: [tripParticipant.userId],
+			references: [userProfile.userId],
+		}),
+		trip: one(trip, {
+			fields: [tripParticipant.tripId],
+			references: [trip.id],
+		}),
+	}),
+)
