@@ -40,6 +40,7 @@ export const communityMember = pgTable("community_member", {
 
 export const communityRelations = relations(community, ({ many }) => ({
 	members: many(communityMember),
+	trips: many(trip),
 }))
 
 export const communityMemberRelations = relations(
