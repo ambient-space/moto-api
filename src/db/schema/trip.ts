@@ -38,3 +38,18 @@ export const tripParticipant = pgTable("trip_participant", {
 	joinedAt: timestamp("joined_at", { mode: "string" }).defaultNow().notNull(),
 	updatedAt: sharedColumns.updatedAt,
 })
+export const tripRelations = relations(trip, ({ many, one }) => ({
+	participants: many(tripParticipant),
+	authUser: one(authUser, {
+		fields: [trip.createdBy],
+		references: [authUser.id],
+	}),
+	profile: one(userProfile, {
+		fields: [trip.createdBy],
+		references: [userProfile.userId],
+	}),
+	community: one(community, {
+		fields: [trip.communityId],
+		references: [community.id],
+	}),
+}))
