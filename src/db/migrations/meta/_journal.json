@@ -8,6 +8,13 @@
       "when": 1720508069968,
       "tag": "0000_nappy_scourge",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1720622998160,
+      "tag": "0001_premium_quasar",
+      "breakpoints": true
     }
   ]
 }
