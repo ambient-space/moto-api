@@ -39,7 +39,7 @@ export const communityRoutes = new Elysia({ prefix: "/community" })
 					description: community.description,
 				})
 				.from(community)
-				.limit(5)
+				.limit(50)
 
 			for (let i = 0; i < communities.length; i++) {
 				const m = await trx
