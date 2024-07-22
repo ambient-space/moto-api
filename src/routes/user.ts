@@ -19,39 +19,24 @@ export const userRoutes = new Elysia({ prefix: "/user" })
 		}
 
 		try {
-			const aUser = (
-				await db
-					.select({ username: authUser.username, email: authUser.email })
-					.from(authUser)
-					.where(eq(authUser.id, user.id))
-					.execute()
-			)[0]
-			const foundUser = await db
-				.select()
-				.from(userProfile)
-				.where(eq(userProfile.userId, user.id))
-
-			if (!foundUser || foundUser.length === 0) {
-				const insertedUser = (
-					await db
-						.insert(userProfile)
-						.values({
-							userId: user.id,
-							fullName: "",
-							profilePicture: "",
-							bio: "",
-							coverImage: "",
-						})
-						.returning()
-				)[0]
-				return {
-					data: { ...aUser, ...insertedUser },
-					error: null,
-				}
-			}
+			const foundUser = await db.query.authUser.findFirst({
+				columns: {
+					id: true,
+					username: true,
+					email: true,
+				},
+				where: (authUser, { eq }) => eq(authUser.id, user.id),
+				with: {
+					profile: {
+						columns: {
+							userId: false,
+						},
+					},
+				},
+			})
 
 			return {
-				data: { ...aUser, ...foundUser[0] },
+				data: foundUser,
 				error: null,
 			}
 		} catch (err) {
@@ -82,10 +67,20 @@ export const userRoutes = new Elysia({ prefix: "/user" })
 				.execute()
 
 			if (!foundUser || foundUser.length === 0) {
-				context.set.status = 404
+				const newUser = await db
+					.insert(userProfile)
+					.values({
+						userId: user.id,
+						fullName: body.fullName,
+						profilePicture: body.profilePicture,
+						bio: body.bio,
+						coverImage: body.coverImage,
+					})
+					.returning()
+
 				return {
-					data: null,
-					error: { message: "User not found" },
+					data: newUser,
+					error: null,
 				}
 			}
 
