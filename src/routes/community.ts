@@ -116,6 +116,44 @@ export const communityRoutes = new Elysia({ prefix: "/community" })
 			}),
 		},
 	)
+	.post(
+		"/",
+		async ({ user, body, set }) => {
+			if (!user) {
+				set.status = 401
+				return {
+					status: 401,
+					body: "Unauthorized",
+				}
+			}
+			const insertedCommunity = await db
+				.insert(community)
+				.values({
+					...body,
+					createdBy: user.id,
+				})
+				.returning()
+
+			await db.insert(communityMember).values({
+				communityId: insertedCommunity[0].id,
+				userId: user.id,
+				role: "admin",
+			})
+			return {
+				data: insertedCommunity[0],
+				error: null,
+			}
+		},
+		{
+			body: t.Object({
+				name: t.String(),
+				description: t.String(),
+				isPrivate: t.Optional(t.Boolean()),
+				profilePicture: t.Optional(t.String()),
+				coverImage: t.Optional(t.String()),
+			}),
+		},
+	)
 	.get(
 		"/:id",
 		async ({ user, params, set }) => {
@@ -173,39 +211,6 @@ export const communityRoutes = new Elysia({ prefix: "/community" })
 		{
 			params: t.Object({
 				id: t.String(),
-			}),
-		},
-	)
-	.post(
-		"/",
-		async ({ user, body, set }) => {
-			if (!user) {
-				set.status = 401
-				return {
-					status: 401,
-					body: "Unauthorized",
-				}
-			}
-			const { ...data } = body
-			const insertedCommunity = await db
-				.insert(community)
-				.values({
-					...data,
-					createdBy: user.id,
-				})
-				.returning()
-			return {
-				data: insertedCommunity,
-				error: null,
-			}
-		},
-		{
-			body: t.Object({
-				name: t.String(),
-				description: t.String(),
-				isPrivate: t.Optional(t.Boolean()),
-				profilePicture: t.String(),
-				coverImage: t.String(),
 			}),
 		},
 	)
