@@ -36,26 +36,39 @@ export const tripRoutes = new Elysia({ prefix: "/trip" })
 			if (!user) {
 				set.status = 401
 				return {
-					status: 401,
-					body: "Unauthorized",
+					data: null,
+					error: { message: "Unauthorized" },
 				}
 			}
 
 			const { maxParticipants, ...data } = body
 
-			const insertedTrip = await db
-				.insert(trip)
-				.values({
-					maxParticipants: maxParticipants || DEFAULT_MAX_PARTICIPANTS,
-					createdBy: user.id,
-					startLocation: { lat: 0, lng: 0 },
-					...data,
-				})
-				.returning()
+			try {
+				const insertedTrip = await db
+					.insert(trip)
+					.values({
+						maxParticipants: maxParticipants || DEFAULT_MAX_PARTICIPANTS,
+						createdBy: user.id,
+						...data,
+					})
+					.returning()
 
-			return {
-				data: insertedTrip,
-				error: null,
+				await db.insert(tripParticipant).values({
+					userId: user.id,
+					tripId: insertedTrip[0].id,
+					role: "organizer",
+				})
+
+				return {
+					data: insertedTrip[0],
+					error: null,
+				}
+			} catch (e) {
+				console.error(e)
+				return {
+					data: null,
+					error: e,
+				}
 			}
 		},
 		{
@@ -65,18 +78,20 @@ export const tripRoutes = new Elysia({ prefix: "/trip" })
 				startDate: t.String(),
 				endDate: t.Optional(t.String()),
 				maxParticipants: t.Optional(t.Number()),
-				startLocation: t.Optional(
-					t.Object({
-						lat: t.Number(),
-						lng: t.Number(),
-					}),
-				),
-				endLocation: t.Optional(
-					t.Object({
-						lat: t.Number(),
-						lng: t.Number(),
-					}),
-				),
+				// startLocation: t.Optional(
+				// 	t.Object({
+				// 		lat: t.Number(),
+				// 		lng: t.Number(),
+				// 	}),
+				// ),
+				// endLocation: t.Optional(
+				// 	t.Object({
+				// 		lat: t.Number(),
+				// 		lng: t.Number(),
+				// 	}),
+				// ),
+				startLocation: t.String(),
+				endLocation: t.Optional(t.String()),
 				route: t.Optional(
 					t.Array(
 						t.Object({
@@ -147,8 +162,8 @@ export const tripRoutes = new Elysia({ prefix: "/trip" })
 			if (!user) {
 				set.status = 401
 				return {
-					status: 401,
-					body: "Unauthorized",
+					data: null,
+					error: { message: "Unauthorized" },
 				}
 			}
 			const { id } = params
@@ -205,6 +220,9 @@ export const tripRoutes = new Elysia({ prefix: "/trip" })
 					participants: {
 						where: (tripParticipant, { eq }) =>
 							eq(tripParticipant.tripId, Number.parseInt(id)),
+						with: {
+							profile: true,
+						},
 					},
 				},
 			})
@@ -227,8 +245,8 @@ export const tripRoutes = new Elysia({ prefix: "/trip" })
 			if (!user) {
 				set.status = 401
 				return {
-					status: 401,
-					body: "Unauthorized",
+					data: null,
+					error: { message: "Unauthorized" },
 				}
 			}
 
@@ -261,18 +279,20 @@ export const tripRoutes = new Elysia({ prefix: "/trip" })
 				description: t.Optional(t.String()),
 				startDate: t.Optional(t.String()),
 				endDate: t.Optional(t.String()),
-				startLocation: t.Optional(
-					t.Object({
-						lat: t.Number(),
-						lng: t.Number(),
-					}),
-				),
-				endLocation: t.Optional(
-					t.Object({
-						lat: t.Number(),
-						lng: t.Number(),
-					}),
-				),
+				// startLocation: t.Optional(
+				// 	t.Object({
+				// 		lat: t.Number(),
+				// 		lng: t.Number(),
+				// 	}),
+				// ),
+				// endLocation: t.Optional(
+				// 	t.Object({
+				// 		lat: t.Number(),
+				// 		lng: t.Number(),
+				// 	}),
+				// ),
+				startLocation: t.Optional(t.String()),
+				endLocation: t.Optional(t.String()),
 				maxParticipants: t.Optional(t.Number()),
 				route: t.Optional(
 					t.Array(
@@ -296,8 +316,8 @@ export const tripRoutes = new Elysia({ prefix: "/trip" })
 			if (!user) {
 				set.status = 401
 				return {
-					status: 401,
-					body: "Unauthorized",
+					data: null,
+					error: { message: "Unauthorized" },
 				}
 			}
 
