@@ -55,7 +55,6 @@ export const messageRoutes = new Elysia({ prefix: "/message" })
 			} catch (e) {
 				console.error(e)
 			}
-			console.log("Message received", body)
 		},
 	})
 	.get("/:id", async ({ user, params, set }) => {
