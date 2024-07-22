@@ -8,6 +8,7 @@ import {
 	serial,
 	text,
 	timestamp,
+	uuid,
 } from "drizzle-orm/pg-core"
 import { authUser } from "./auth"
 import { trip } from "./trip"
@@ -83,6 +84,7 @@ export const announcement = pgTable("announcement", {
 
 export const message = pgTable("message", {
 	id: serial("id").primaryKey(),
+	uuid: uuid("uuid").defaultRandom().notNull(),
 	communityId: integer("community_id").references(() => community.id, {
 		onDelete: "cascade",
 	}),
@@ -91,3 +93,18 @@ export const message = pgTable("message", {
 	content: text("content").notNull(),
 	sentAt: timestamp("sent_at", { mode: "string" }).defaultNow().notNull(),
 })
+
+export const messageRelations = relations(message, ({ one }) => ({
+	sender: one(authUser, {
+		fields: [message.senderId],
+		references: [authUser.id],
+	}),
+	senderProfile: one(userProfile, {
+		fields: [message.senderId],
+		references: [userProfile.userId],
+	}),
+	community: one(community, {
+		fields: [message.communityId],
+		references: [community.id],
+	}),
+}))
