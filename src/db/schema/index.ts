@@ -1,4 +1,9 @@
-import { authSession, authUser } from "./auth"
+import {
+	authSession,
+	authSessionRelations,
+	authUser,
+	authUserRelations,
+} from "./auth"
 import {
 	announcement,
 	community,
@@ -6,6 +11,7 @@ import {
 	communityMemberRelations,
 	communityRelations,
 	message,
+	messageRelations,
 } from "./community"
 import {
 	trip,
@@ -18,13 +24,16 @@ import { userProfile, userProfileRelations } from "./user"
 export const schema = {
 	authSession,
 	authUser,
-	announcement,
+	authUserRelations,
+	authSessionRelations,
 
+	announcement,
 	community,
 	communityRelations,
 	communityMember,
 	communityMemberRelations,
 	message,
+	messageRelations,
 
 	userProfile,
 	userProfileRelations,
