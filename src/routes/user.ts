@@ -29,7 +29,7 @@ export const userRoutes = new Elysia({ prefix: "/user" })
 				with: {
 					profile: {
 						columns: {
-							userId: false,
+							fullName: true,
 						},
 					},
 				},
@@ -48,6 +48,138 @@ export const userRoutes = new Elysia({ prefix: "/user" })
 			}
 		}
 	})
+	.get("/profile", async ({ params, set, user }) => {
+		try {
+			if (!user) {
+				set.status = 401
+				return {
+					error: { message: "Unauthorized" },
+					data: null,
+				}
+			}
+
+			const foundUser = await db.query.userProfile.findFirst({
+				where: (userProfile, { eq }) => eq(userProfile.userId, user.id),
+				columns: {
+					updatedAt: false,
+				},
+				with: {
+					authUser: {
+						columns: {
+							username: true,
+							// email: true,
+						},
+					},
+				},
+			})
+
+			return {
+				data: foundUser,
+				error: null,
+			}
+		} catch (err) {
+			console.error(err)
+			set.status = 500
+			return {
+				error: err,
+				data: null,
+			}
+		}
+	})
+	.get(
+		"/profile/:id",
+		async ({ params, set, user }) => {
+			try {
+				if (!user) {
+					set.status = 401
+					return {
+						error: { message: "Unauthorized" },
+						data: null,
+					}
+				}
+
+				const { id } = params
+				const foundUser = await db.query.userProfile.findFirst({
+					where: (userProfile, { eq }) => eq(userProfile.userId, id),
+					columns: {
+						updatedAt: false,
+					},
+					with: {
+						authUser: {
+							columns: {
+								username: true,
+							},
+						},
+					},
+				})
+
+				return {
+					data: foundUser,
+					error: null,
+				}
+			} catch (err) {
+				console.error(err)
+				set.status = 500
+				return {
+					error: err,
+					data: null,
+				}
+			}
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+		},
+	)
+	.get(
+		"community/:id",
+		async ({ params, set, user }) => {
+			try {
+				if (!user) {
+					set.status = 401
+					return {
+						error: { message: "Unauthorized" },
+						data: null,
+					}
+				}
+
+				const { id } = params
+				const foundUser = await db.query.communityMember.findFirst({
+					where: (communityMember, { eq, and }) =>
+						and(
+							eq(communityMember.userId, user.id),
+							eq(communityMember.communityId, Number.parseInt(id)),
+						),
+					with: {
+						profile: {
+							columns: {
+								fullName: true,
+								profilePicture: true,
+							},
+						},
+					},
+				})
+
+				return {
+					data: foundUser,
+					error: null,
+				}
+			} catch (err) {
+				console.error(err)
+				set.status = 500
+				return {
+					error: err,
+					data: null,
+				}
+			}
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+		},
+	)
 	.post(
 		"/",
 		async context => {
