@@ -23,8 +23,10 @@ export const trip = pgTable("trip", {
 	description: text("description"),
 	startDate: timestamp("start_date", { mode: "string" }).notNull(),
 	endDate: timestamp("end_date", { mode: "string" }),
-	startLocation: jsonb("start_location").notNull(), // { lat: number, lng: number }
-	endLocation: jsonb("end_location"), // { lat: number, lng: number }
+	// startLocation: jsonb("start_location").notNull(), // { lat: number, lng: number }
+	// endLocation: jsonb("end_location"), // { lat: number, lng: number }
+	startLocation: text("start_location").notNull(),
+	endLocation: text("end_location"),
 	route: jsonb("route"), // Array of waypoints
 	maxParticipants: integer("max_participants"),
 	...sharedColumns,
