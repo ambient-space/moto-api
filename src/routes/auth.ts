@@ -41,6 +41,38 @@ authRoutes
 			}
 
 			try {
+				const existingUserByEmail = await db.query.authUser.findFirst({
+					where: (authUser, { eq }) =>
+						eq(authUser.email, validatedInput.data.email),
+				})
+				if (existingUserByEmail) {
+					set.status = 400
+					return {
+						data: null,
+						error: {
+							fields: {
+								email: "A user with this email already exists",
+							},
+						},
+					}
+				}
+
+				const existingUserByUsername = await db.query.authUser.findFirst({
+					where: (authUser, { eq }) =>
+						eq(authUser.username, validatedInput.data.username),
+				})
+				if (existingUserByUsername) {
+					set.status = 400
+					return {
+						data: null,
+						error: {
+							fields: {
+								username: "A user with this username already exists",
+							},
+						},
+					}
+				}
+
 				const hashedPassword = await Bun.password.hash(
 					validatedInput.data.password,
 				)
@@ -66,7 +98,7 @@ authRoutes
 				// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 			} catch (e: any) {
 				set.status = 400
-				return { data: null, error: { message: e.message } }
+				return { data: null, error: e }
 			}
 		},
 		{
