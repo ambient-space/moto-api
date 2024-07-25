@@ -34,8 +34,6 @@ export const communityRoutes = new Elysia({ prefix: "/community" })
 				.select({
 					id: community.id,
 					name: community.name,
-					profilePicture: community.profilePicture,
-					coverImage: community.coverImage,
 					description: community.description,
 				})
 				.from(community)
@@ -117,6 +115,48 @@ export const communityRoutes = new Elysia({ prefix: "/community" })
 		},
 	)
 	.post(
+		"/leave/:id",
+		async ({ user, params, set }) => {
+			if (!user) {
+				set.status = 401
+				return {
+					status: 401,
+					body: "Unauthorized",
+				}
+			}
+			const { id } = params
+			const existingMember = await db.query.communityMember.findFirst({
+				where: (communityMember, { eq, and }) =>
+					and(
+						eq(communityMember.userId, user.id),
+						eq(communityMember.communityId, Number.parseInt(id)),
+					),
+			})
+
+			if (existingMember === undefined) {
+				set.status = 400
+				return {
+					data: null,
+					error: { message: "Not a member of this community" },
+				}
+			}
+
+			const deletedMember = await db
+				.delete(communityMember)
+				.where(eq(communityMember.id, existingMember.id))
+				.returning()
+			return {
+				data: deletedMember,
+				error: null,
+			}
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+		},
+	)
+	.post(
 		"/",
 		async ({ user, body, set }) => {
 			if (!user) {
@@ -149,7 +189,6 @@ export const communityRoutes = new Elysia({ prefix: "/community" })
 				name: t.String(),
 				description: t.String(),
 				isPrivate: t.Optional(t.Boolean()),
-				profilePicture: t.Optional(t.String()),
 				coverImage: t.Optional(t.String()),
 			}),
 		},
@@ -203,8 +242,26 @@ export const communityRoutes = new Elysia({ prefix: "/community" })
 				},
 			})
 
+			const c = await db
+				.select({ count: count() })
+				.from(communityMember)
+				.where(eq(communityMember.communityId, Number.parseInt(id)))
+
+			const isCurrentUserMember = await db.query.communityMember.findFirst({
+				where: (communityMember, { eq, and }) =>
+					and(
+						eq(communityMember.userId, user.id),
+						eq(communityMember.communityId, Number.parseInt(id)),
+					),
+			})
+
 			return {
-				data: foundCommunityWithMembers,
+				data: {
+					isAdmin: isCurrentUserMember?.role === "admin",
+					isMember: isCurrentUserMember !== undefined,
+					memberCount: c[0].count,
+					...foundCommunityWithMembers,
+				},
 				error: null,
 			}
 		},
@@ -262,7 +319,7 @@ export const communityRoutes = new Elysia({ prefix: "/community" })
 			const { id } = params
 			const deletedCommunity = await db
 				.delete(community)
-				.where(eq(community.id, id))
+				.where(eq(community.id, Number.parseInt(id)))
 				.returning()
 			return {
 				data: deletedCommunity,
@@ -271,7 +328,7 @@ export const communityRoutes = new Elysia({ prefix: "/community" })
 		},
 		{
 			params: t.Object({
-				id: t.Number(),
+				id: t.String(),
 			}),
 		},
 	)
