@@ -125,7 +125,7 @@ export const tripRoutes = new Elysia({ prefix: "/trip" })
 					endLocation: trip.endLocation,
 				})
 				.from(trip)
-				.limit(5)
+				.limit(50)
 
 			for (let i = 0; i < trips.length; i++) {
 				const m = await trx
