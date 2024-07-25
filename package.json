@@ -7,6 +7,7 @@
   },
   "dependencies": {
     "@lucia-auth/adapter-drizzle": "^1.0.7",
+    "cloudinary": "^2.3.0",
     "drizzle-orm": "^0.31.2",
     "elysia": "latest",
     "lodash": "^4.17.21",
