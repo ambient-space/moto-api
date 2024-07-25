@@ -30,6 +30,7 @@ export const userRoutes = new Elysia({ prefix: "/user" })
 					profile: {
 						columns: {
 							fullName: true,
+							profilePicture: true,
 						},
 					},
 				},
@@ -235,9 +236,9 @@ export const userRoutes = new Elysia({ prefix: "/user" })
 		{
 			body: t.Object({
 				fullName: t.String(),
-				profilePicture: t.String(),
-				bio: t.String(),
-				coverImage: t.String(),
+				profilePicture: t.Optional(t.String()),
+				bio: t.Optional(t.String()),
+				coverImage: t.Optional(t.String()),
 			}),
 		},
 	)
