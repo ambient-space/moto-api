@@ -379,6 +379,27 @@ export const userRoutes = new Elysia({ prefix: "/user" })
 			}
 		}
 	})
+	.get("/vehicle", async ({ user, set }) => {
+		if (!user) {
+			set.status = 401
+			return {
+				status: 401,
+				body: "Unauthorized",
+			}
+		}
+
+		const foundVehicles = await db.query.userVehicles.findMany({
+			where: (vehicle, { eq }) => eq(userVehicles.userId, user.id),
+			with: {
+				vehicle: true,
+			},
+		})
+
+		return {
+			data: foundVehicles,
+			error: null,
+		}
+	})
 	.post(
 		"/vehicle",
 		async ({ user, body, set }) => {
