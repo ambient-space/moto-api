@@ -19,7 +19,13 @@ import {
 	tripParticipantRelations,
 	tripRelations,
 } from "./trip"
-import { userProfile, userProfileRelations } from "./user"
+import {
+	userProfile,
+	userProfileRelations,
+	userVehicles,
+	userVehiclesRelations,
+} from "./user"
+import { vehicle } from "./vehicle"
 
 export const schema = {
 	authSession,
@@ -37,9 +43,13 @@ export const schema = {
 
 	userProfile,
 	userProfileRelations,
+	userVehicles,
+	userVehiclesRelations,
 
 	trip,
 	tripRelations,
 	tripParticipant,
 	tripParticipantRelations,
+
+	vehicle,
 }
