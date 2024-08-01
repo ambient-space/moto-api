@@ -5,6 +5,7 @@ import { communityRoutes } from "./routes/community"
 import { messageRoutes } from "./routes/message"
 import { tripRoutes } from "./routes/trip"
 import { userRoutes } from "./routes/user"
+import { vehicleRoutes } from "./routes/vehicle"
 
 const app = new Elysia()
 	.use(authRoutes)
@@ -13,6 +14,7 @@ const app = new Elysia()
 	.use(communityRoutes)
 	.use(messageRoutes)
 	.use(assetRoutes)
+	.use(vehicleRoutes)
 	.get("/", () => ({ data: { status: "ok" }, error: null }))
 	.listen(3000)
 
