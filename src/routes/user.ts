@@ -379,3 +379,42 @@ export const userRoutes = new Elysia({ prefix: "/user" })
 			}
 		}
 	})
+	.post(
+		"/vehicle",
+		async ({ user, body, set }) => {
+			if (!user) {
+				set.status = 401
+				return {
+					status: 401,
+					body: "Unauthorized",
+				}
+			}
+
+			try {
+				const newVehicle = await db
+					.insert(userVehicles)
+					.values({
+						userId: user.id,
+						vehicleId: body.vehicleId,
+						year: String(body.year),
+					})
+					.returning()
+				return {
+					data: newVehicle,
+					error: null,
+				}
+			} catch (e) {
+				console.log(e)
+				return {
+					data: null,
+					error: e,
+				}
+			}
+		},
+		{
+			body: t.Object({
+				vehicleId: t.Number(),
+				year: t.Number(),
+			}),
+		},
+	)
