@@ -22,6 +22,14 @@
       "when": 1721458465306,
       "tag": "0002_bouncy_gideon",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1722503430299,
+      "tag": "0003_smiling_mesmero",
+      "breakpoints": true
+    },
     }
   ]
 }
