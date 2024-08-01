@@ -20,54 +20,64 @@ export const communityRoutes = new Elysia({ prefix: "/community" })
 			error: null,
 		}
 	})
-	.get("/overview", async ({ user, set }) => {
-		if (!user) {
-			set.status = 401
-			return {
-				error: { message: "Unauthorized" },
-				data: null,
+	.get(
+		"/overview",
+		async ({ user, set, query }) => {
+			if (!user) {
+				set.status = 401
+				return {
+					error: { message: "Unauthorized" },
+					data: null,
+				}
 			}
-		}
 
-		const res = await db.transaction(async trx => {
-			const communities = await trx
-				.select({
-					id: community.id,
-					name: community.name,
-					description: community.description,
-				})
-				.from(community)
-				.limit(50)
+			const page = Number.parseInt(query.page || "0")
+			const limit = Number.parseInt(query.limit || "5")
 
-			for (let i = 0; i < communities.length; i++) {
-				const m = await trx
+			const res = await db.transaction(async trx => {
+				const communities = await trx
 					.select({
-						id: communityMember.id,
-						userId: communityMember.userId,
-						role: communityMember.role,
-						communityId: communityMember.communityId,
+						id: community.id,
+						name: community.name,
+						description: community.description,
 					})
-					.from(communityMember)
-					.where(eq(communityMember.communityId, communities[i].id))
-					.limit(3)
-				const c = await trx
-					.select({ count: count() })
-					.from(communityMember)
-					.where(eq(communityMember.communityId, communities[i].id))
+					.from(community)
+					.offset(page * limit)
+					.limit(limit)
 
-				// @ts-expect-error error
-				communities[i].members = m
-				// @ts-expect-error error
-				communities[i].memberCount = c[0].count
+				for (let i = 0; i < communities.length; i++) {
+					const c = await trx
+						.select({ count: count() })
+						.from(communityMember)
+						.where(eq(communityMember.communityId, communities[i].id))
+					const isMember = await trx.query.communityMember.findFirst({
+						where: (communityMember, { eq, and }) =>
+							and(
+								eq(communityMember.userId, user.id),
+								eq(communityMember.communityId, communities[i].id),
+							),
+					})
+
+					// @ts-expect-error error
+					communities[i].isMember = isMember !== undefined
+					// @ts-expect-error error
+					communities[i].memberCount = c[0].count
+				}
+				return communities
+			})
+
+			return {
+				data: res,
+				error: null,
 			}
-			return communities
-		})
-
-		return {
-			data: res,
-			error: null,
-		}
-	})
+		},
+		{
+			query: t.Object({
+				page: t.Optional(t.String()),
+				limit: t.Optional(t.String()),
+			}),
+		},
+	)
 	.post(
 		"/join/:id",
 		async ({ user, params, set }) => {
