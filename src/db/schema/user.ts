@@ -1,9 +1,17 @@
 import { sharedColumns } from "@db/shared"
 import { relations } from "drizzle-orm"
-import { pgTable, serial, text, timestamp } from "drizzle-orm/pg-core"
+import {
+	integer,
+	numeric,
+	pgTable,
+	serial,
+	text,
+	timestamp,
+} from "drizzle-orm/pg-core"
 import { authUser } from "./auth"
 import { communityMember } from "./community"
 import { tripParticipant } from "./trip"
+import { vehicle } from "./vehicle"
 
 export const userProfile = pgTable("user_profile", {
 	userId: text("user_id")
@@ -24,6 +32,34 @@ export const userProfileRelations = relations(userProfile, ({ one, many }) => ({
 	kycDocuments: many(kycDocument),
 	tripParticipant: many(tripParticipant),
 	communityMember: many(communityMember),
+	userVehicles: many(userVehicles),
+}))
+
+export const userVehicles = pgTable("user_vehicle", {
+	id: serial("id").primaryKey(),
+	userId: text("user_id").references(() => authUser.id, {
+		onDelete: "cascade",
+	}),
+	vehicleId: integer("vehicle_id")
+		.notNull()
+		.references(() => vehicle.id),
+	year: numeric("year"),
+	...sharedColumns,
+})
+
+export const userVehiclesRelations = relations(userVehicles, ({ one }) => ({
+	vehicle: one(vehicle, {
+		fields: [userVehicles.vehicleId],
+		references: [vehicle.id],
+	}),
+	user: one(authUser, {
+		fields: [userVehicles.userId],
+		references: [authUser.id],
+	}),
+	profile: one(userProfile, {
+		fields: [userVehicles.userId],
+		references: [userProfile.userId],
+	}),
 }))
 
 export const kycDocument = pgTable("kyc_document", {
