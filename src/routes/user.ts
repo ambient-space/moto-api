@@ -292,6 +292,56 @@ export const userRoutes = new Elysia({ prefix: "/user" })
 			}),
 		},
 	)
+	.get("/trips", async ({ user, set }) => {
+		if (!user) {
+			set.status = 401
+			return {
+				status: 401,
+				body: "Unauthorized",
+			}
+		}
+
+		const foundTrips = await db.query.trip.findMany({
+			where: (trip, { eq }) => eq(trip.createdBy, user.id),
+			with: {
+				participants: {
+					with: {
+						profile: true,
+					},
+				},
+			},
+		})
+
+		return {
+			data: foundTrips,
+			error: null,
+		}
+	})
+	.get("/communities", async ({ user, set }) => {
+		if (!user) {
+			set.status = 401
+			return {
+				status: 401,
+				body: "Unauthorized",
+			}
+		}
+
+		const foundCommunities = await db.query.community.findMany({
+			where: (community, { eq }) => eq(community.createdBy, user.id),
+			with: {
+				members: {
+					with: {
+						profile: true,
+					},
+				},
+			},
+		})
+
+		return {
+			data: foundCommunities,
+			error: null,
+		}
+	})
 	.delete("/", async context => {
 		const { user } = context
 		if (!user) {
