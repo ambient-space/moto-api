@@ -1,3 +1,9 @@
+import { db } from "@db/connect"
+import { vehicle } from "@db/schema/vehicle"
+import axios from "axios"
+import { ilike } from "drizzle-orm"
+import Elysia from "elysia"
+
 const scrapeAutocomplete = async <U>(query: U, map: Map<U, U>) => {
 	if (map.has(query)) return
 	const { data } = await axios.get(
@@ -100,3 +106,30 @@ const scrapeModels = async (make: number) => {
 	}
 }
 
+export const vehicleRoutes = new Elysia({ prefix: "/vehicle" })
+	.post("/populate", async ({ set }) => {
+		// const query = "abcdefghijklmnopqrstuvwxyz"
+		const map = new Map<string, string>()
+		// for (const q of query) {
+		// 	await scrapeAutocomplete(q, map)
+		// }
+
+		let i = 0
+		while (i < 20) {
+			scrapeModels(i)
+			i += 1
+		}
+
+		console.log(map.entries())
+	})
+	.get("/autocomplete", async ({ query }) => {
+		const { q } = query
+		if (!q) return { data: [], error: null }
+
+		const res = await db.query.vehicle.findMany({
+			where: ilike(vehicle.combinedKey, `%${q}%`),
+			limit: 10,
+		})
+
+		return { data: res, error: null }
+	})
