@@ -1,6 +1,6 @@
 import { db } from "@db/connect"
 import { authUser } from "@db/schema/auth"
-import { userProfile } from "@db/schema/user"
+import { userProfile, userVehicles } from "@db/schema/user"
 import { eq } from "drizzle-orm"
 import Elysia, { t } from "elysia"
 import { omit } from "lodash"
@@ -71,6 +71,18 @@ export const userRoutes = new Elysia({ prefix: "/user" })
 							// email: true,
 						},
 					},
+					userVehicles: {
+						with: {
+							vehicle: {
+								columns: {
+									id: true,
+									make: true,
+									model: true,
+									vehicleType: true,
+								},
+							},
+						},
+					},
 				},
 			})
 
@@ -109,6 +121,18 @@ export const userRoutes = new Elysia({ prefix: "/user" })
 						authUser: {
 							columns: {
 								username: true,
+							},
+						},
+						userVehicles: {
+							with: {
+								vehicle: {
+									columns: {
+										id: true,
+										make: true,
+										model: true,
+										vehicleType: true,
+									},
+								},
 							},
 						},
 					},
