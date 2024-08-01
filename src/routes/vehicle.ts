@@ -47,3 +47,56 @@ const scrapeAutocomplete = async <U>(query: U, map: Map<U, U>) => {
 		}
 	}
 }
+
+const bodyStyleId2Name = (id: number) => {
+	switch (id) {
+		case 5:
+			return "Scooter"
+		case 1:
+			return "Cruiser"
+		case 12:
+			return "Sports Bike"
+		case 15:
+			return "Tourer"
+		case 11:
+			return "Scrambler"
+		case 7:
+			return "Adventure"
+		case 13:
+			return "Street Bike"
+		case 16:
+			return "Moped"
+		case 14:
+			return "Super bike"
+		case 8:
+			return "Cafe Racer"
+		case 9:
+			return "Commuter"
+		case 10:
+			return "Maxi Scooter"
+		default:
+			return "NA"
+	}
+}
+
+const scrapeModels = async (make: number) => {
+	const res = await axios.get(
+		`https://www.bikewale.com/api/make/${make}/models/?bodyStyleIds=12%2C5%2C1%2C9%2C13%2C14%2C8%2C11%2C7%2C16%2C15%2C10`,
+	)
+
+	if (!res.data) return
+
+	for (const item of res.data) {
+		const type = bodyStyleId2Name(item.bodyStyleId)
+		await db
+			.insert(vehicle)
+			.values({
+				make: item.makeName,
+				model: item.modelName,
+				vehicleType: type,
+				combinedKey: `${item.makeName} ${item.modelName} ${type}`,
+			})
+			.execute()
+	}
+}
+
