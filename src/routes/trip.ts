@@ -105,56 +105,68 @@ export const tripRoutes = new Elysia({ prefix: "/trip" })
 		},
 	)
 	// GET /trip/overview (get 5 most recent trips)
-	.get("/overview", async ({ user, set }) => {
-		if (!user) {
-			set.status = 401
-			return {
-				error: { message: "Unauthorized" },
-				data: null,
+	.get(
+		"/overview",
+		async ({ user, set, query }) => {
+			if (!user) {
+				set.status = 401
+				return {
+					error: { message: "Unauthorized" },
+					data: null,
+				}
 			}
-		}
 
-		const res = await db.transaction(async trx => {
-			const trips = await trx
-				.select({
-					id: trip.id,
-					name: trip.name,
-					description: trip.description,
-					startDate: trip.startDate,
-					startLocation: trip.startLocation,
-					endLocation: trip.endLocation,
-				})
-				.from(trip)
-				.limit(50)
+			const page = Number.parseInt(query.page || "0")
+			const limit = Number.parseInt(query.limit || "5")
 
-			for (let i = 0; i < trips.length; i++) {
-				const m = await trx
+			const res = await db.transaction(async trx => {
+				const trips = await trx
 					.select({
-						id: tripParticipant.id,
-						userId: tripParticipant.userId,
-						tripId: tripParticipant.tripId,
+						id: trip.id,
+						name: trip.name,
+						description: trip.description,
+						startDate: trip.startDate,
+						startLocation: trip.startLocation,
+						endLocation: trip.endLocation,
 					})
-					.from(tripParticipant)
-					.where(eq(tripParticipant.tripId, trips[i].id))
-					.limit(3)
-				const c = await trx
-					.select({ count: count() })
-					.from(tripParticipant)
-					.where(eq(tripParticipant.tripId, trips[i].id))
+					.from(trip)
+					.offset(page * limit)
+					.limit(limit)
 
-				// @ts-expect-error error
-				trips[i].participants = m
-				// @ts-expect-error error
-				trips[i].participantCount = c[0].count
+				for (let i = 0; i < trips.length; i++) {
+					const c = await trx
+						.select({ count: count() })
+						.from(tripParticipant)
+						.where(eq(tripParticipant.tripId, trips[i].id))
+
+					const isParticipant = await trx.query.tripParticipant.findFirst({
+						where: (tripParticipant, { eq, and }) =>
+							and(
+								eq(tripParticipant.userId, user.id),
+								eq(tripParticipant.tripId, trips[i].id),
+							),
+					})
+
+					// @ts-expect-error error
+					trips[i].isParticipant = isParticipant !== undefined
+					// @ts-expect-error error
+					trips[i].participantCount = c[0].count
+				}
+				return trips
+			})
+
+			return {
+				data: res,
+				error: null,
 			}
-			return trips
-		})
-
-		return {
-			data: res,
-			error: null,
-		}
-	})
+		},
+		{
+			query: t.Object({
+				page: t.Optional(t.String()),
+				limit: t.Optional(t.String()),
+			}),
+		},
+	)
 	// POST /trip/join/:id (join a trip)
 	.post(
 		"/join/:id",
@@ -202,7 +214,49 @@ export const tripRoutes = new Elysia({ prefix: "/trip" })
 			}),
 		},
 	)
-	// GET /trip/:id (trip details with messages)
+	.post(
+		"/leave/:id",
+		async ({ user, params, set }) => {
+			if (!user) {
+				set.status = 401
+				return {
+					status: 401,
+					body: "Unauthorized",
+				}
+			}
+			const { id } = params
+			const existingMember = await db.query.tripParticipant.findFirst({
+				where: (tripParticipant, { eq, and }) =>
+					and(
+						eq(tripParticipant.userId, user.id),
+						eq(tripParticipant.tripId, Number.parseInt(id)),
+					),
+			})
+
+			if (existingMember === undefined) {
+				set.status = 400
+				return {
+					data: null,
+					error: { message: "Not a participant of this trip" },
+				}
+			}
+
+			const deletedMember = await db
+				.delete(tripParticipant)
+				.where(eq(tripParticipant.id, existingMember.id))
+				.returning()
+			return {
+				data: deletedMember,
+				error: null,
+			}
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+		},
+	)
+	// GET /trip/:id (trip details with members)
 	.get(
 		"/:id",
 		async ({ user, params: { id }, set }) => {
@@ -224,11 +278,38 @@ export const tripRoutes = new Elysia({ prefix: "/trip" })
 							profile: true,
 						},
 					},
+					community: {
+						columns: {
+							name: true,
+							description: true,
+							id: true,
+						},
+					},
 				},
 			})
 
+			const c = await db
+				.select({ count: count() })
+				.from(tripParticipant)
+				.where(eq(tripParticipant.tripId, Number.parseInt(id)))
+
+			const isCurrentUserParticipant = await db.query.tripParticipant.findFirst(
+				{
+					where: (tripParticipant, { eq, and }) =>
+						and(
+							eq(tripParticipant.userId, user.id),
+							eq(tripParticipant.tripId, Number.parseInt(id)),
+						),
+				},
+			)
+
 			return {
-				data: foundTripWithParticipants,
+				data: {
+					isAdmin: isCurrentUserParticipant?.role === "organizer",
+					isParticipant: isCurrentUserParticipant !== undefined,
+					memberCount: c[0].count,
+					...foundTripWithParticipants,
+				},
 				error: null,
 			}
 		},
