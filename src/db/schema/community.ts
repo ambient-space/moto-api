@@ -2,6 +2,7 @@ import { sharedColumns } from "@db/shared"
 import { relations } from "drizzle-orm"
 import {
 	boolean,
+	index,
 	integer,
 	pgEnum,
 	pgTable,
@@ -14,6 +15,7 @@ import { authUser } from "./auth"
 import { trip } from "./trip"
 import { userProfile } from "./user"
 
+// New table for communities
 export const community = pgTable("community", {
 	id: serial("id").primaryKey(),
 	name: text("name").notNull(),
@@ -31,6 +33,7 @@ export const validCommunityRoleEnum = pgEnum(
 	validCommunityRoles,
 )
 
+// New table for community members
 export const communityMember = pgTable("community_member", {
 	id: serial("id").primaryKey(),
 	communityId: integer("community_id")
@@ -46,11 +49,13 @@ export const communityMember = pgTable("community_member", {
 	updatedAt: sharedColumns.updatedAt,
 })
 
+// Relations for communities
 export const communityRelations = relations(community, ({ many }) => ({
 	members: many(communityMember),
 	trips: many(trip),
 }))
 
+// Relations for community members
 export const communityMemberRelations = relations(
 	communityMember,
 	({ one }) => ({
@@ -69,6 +74,7 @@ export const communityMemberRelations = relations(
 	}),
 )
 
+// New table for announcements
 export const announcement = pgTable("announcement", {
 	id: serial("id").primaryKey(),
 	communityId: integer("community_id").references(() => community.id, {
@@ -82,6 +88,7 @@ export const announcement = pgTable("announcement", {
 	createdAt: sharedColumns.createdAt,
 })
 
+// New table for messages
 export const message = pgTable("message", {
 	id: serial("id").primaryKey(),
 	uuid: uuid("uuid").defaultRandom().notNull(),
@@ -94,6 +101,7 @@ export const message = pgTable("message", {
 	sentAt: timestamp("sent_at", { mode: "string" }).defaultNow().notNull(),
 })
 
+// Relations for messages
 export const messageRelations = relations(message, ({ one }) => ({
 	sender: one(authUser, {
 		fields: [message.senderId],
