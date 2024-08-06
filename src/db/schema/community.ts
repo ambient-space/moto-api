@@ -116,8 +116,16 @@ export const messageRelations = relations(message, ({ one }) => ({
 		references: [community.id],
 	}),
 }))
+
 export const inviteStatuses = ["pending", "accepted", "rejected"] as const
+export const joinRequestStatuses = ["pending", "approved", "rejected"] as const
+
 export const validInviteStatusesEnum = pgEnum("invite_status", inviteStatuses)
+export const validJoinRequestStatusesEnum = pgEnum(
+	"join_request_status",
+	joinRequestStatuses,
+)
+
 export const communityInvite = pgTable(
 	"community_invite",
 	{
@@ -153,6 +161,44 @@ export const communityInviteRelations = relations(
 		}),
 		community: one(community, {
 			fields: [communityInvite.communityId],
+			references: [community.id],
+		}),
+	}),
+)
+
+// New table for community join requests
+export const communityJoinRequest = pgTable(
+	"community_join_request",
+	{
+		id: serial("id").primaryKey(),
+		communityId: integer("community_id").references(() => community.id, {
+			onDelete: "cascade",
+		}),
+		userId: text("user_id").references(() => authUser.id, {
+			onDelete: "cascade",
+		}),
+		status: validJoinRequestStatusesEnum("status").default("pending").notNull(),
+		createdAt: sharedColumns.createdAt,
+	},
+	table => ({
+		communityId: index("join_request_community_id_idx").on(table.communityId),
+	}),
+)
+
+// Relations for community join requests
+export const communityJoinRequestRelations = relations(
+	communityJoinRequest,
+	({ one }) => ({
+		authUser: one(authUser, {
+			fields: [communityJoinRequest.userId],
+			references: [authUser.id],
+		}),
+		profile: one(userProfile, {
+			fields: [communityJoinRequest.userId],
+			references: [userProfile.userId],
+		}),
+		community: one(community, {
+			fields: [communityJoinRequest.communityId],
 			references: [community.id],
 		}),
 	}),
