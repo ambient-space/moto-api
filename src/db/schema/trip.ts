@@ -93,8 +93,13 @@ export const tripParticipantRelations = relations(
 )
 
 export const inviteStatuses = ["pending", "accepted", "rejected"] as const
+export const joinRequestStatuses = ["pending", "approved", "rejected"] as const
 
 export const validInviteStatusesEnum = pgEnum("invite_status", inviteStatuses)
+export const validJoinRequestStatusesEnum = pgEnum(
+	"join_request_status",
+	joinRequestStatuses,
+)
 
 // New table for trip invite
 export const tripInvite = pgTable(
@@ -134,3 +139,40 @@ export const tripInviteRelations = relations(tripInvite, ({ one }) => ({
 	}),
 }))
 
+// New table for trip join request
+export const tripJoinRequest = pgTable(
+	"trip_join_request",
+	{
+		id: serial("id").primaryKey(),
+		tripId: integer("trip_id")
+			.notNull()
+			.references(() => trip.id, { onDelete: "cascade" }),
+		userId: text("user_id")
+			.references(() => authUser.id)
+			.notNull(),
+		status: validJoinRequestStatusesEnum("status").default("pending").notNull(), // pending, approved, rejected
+		...sharedColumns,
+	},
+	table => ({
+		tripId: index("trip_join_request_trip_id_idx").on(table.tripId),
+	}),
+)
+
+// Relations for trip join request
+export const tripJoinRequestRelations = relations(
+	tripJoinRequest,
+	({ one }) => ({
+		trip: one(trip, {
+			fields: [tripJoinRequest.tripId],
+			references: [trip.id],
+		}),
+		authUser: one(authUser, {
+			fields: [tripJoinRequest.userId],
+			references: [authUser.id],
+		}),
+		profile: one(userProfile, {
+			fields: [tripJoinRequest.userId],
+			references: [userProfile.userId],
+		}),
+	}),
+)
