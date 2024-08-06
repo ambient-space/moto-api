@@ -116,3 +116,44 @@ export const messageRelations = relations(message, ({ one }) => ({
 		references: [community.id],
 	}),
 }))
+export const inviteStatuses = ["pending", "accepted", "rejected"] as const
+export const validInviteStatusesEnum = pgEnum("invite_status", inviteStatuses)
+export const communityInvite = pgTable(
+	"community_invite",
+	{
+		id: serial("id").primaryKey(),
+		communityId: integer("community_id").references(() => community.id, {
+			onDelete: "cascade",
+		}),
+		inviterId: text("inviter_id").references(() => authUser.id, {
+			onDelete: "cascade",
+		}),
+		inviteCode: text("invite_code").notNull().unique(),
+		status: validInviteStatusesEnum("status").default("pending").notNull(),
+		expiresAt: timestamp("expires_at", { mode: "string" }),
+		createdAt: sharedColumns.createdAt,
+	},
+	table => ({
+		communityId: index("invite_community_id_idx").on(table.communityId),
+		inviteCode: index("invite_code_idx").on(table.inviteCode),
+	}),
+)
+
+// Relations for community invites
+export const communityInviteRelations = relations(
+	communityInvite,
+	({ one }) => ({
+		inviter: one(authUser, {
+			fields: [communityInvite.inviterId],
+			references: [authUser.id],
+		}),
+		profile: one(userProfile, {
+			fields: [communityInvite.inviterId],
+			references: [userProfile.userId],
+		}),
+		community: one(community, {
+			fields: [communityInvite.communityId],
+			references: [community.id],
+		}),
+	}),
+)
