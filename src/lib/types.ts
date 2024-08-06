@@ -1,3 +1,5 @@
+import type Elysia from "elysia"
+import type { InferContext } from "elysia"
 
 type RestMethod = "get" | "post" | "put" | "delete" | "patch"
 
@@ -39,3 +41,12 @@ type PathToNestedObjectAccess<
 			: never
 		: never
 
+/**
+ * Infers the context of a route handler
+ */
+export type InferRouteContext<
+	// biome-ignore lint/suspicious/noExplicitAny: generics are used to infer the context
+	T extends Elysia<any, any, any, any, any, any, any, any>,
+	U extends DeepKeys<T["_routes"]>,
+> = Omit<PathToNestedObjectAccess<T["_routes"], U>, "response"> &
+	Omit<InferContext<T>, "params">
