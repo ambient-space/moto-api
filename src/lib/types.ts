@@ -15,3 +15,9 @@ export type DeepKeys<T, Stop extends string = RestMethod> = T extends object
 				: never
 		}[keyof T]
 	: never
+
+type Split<
+	S extends string,
+	D extends string,
+> = S extends `${infer T}${D}${infer U}` ? [T, ...Split<U, D>] : [S]
+
