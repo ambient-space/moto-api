@@ -7,6 +7,10 @@ import {
 import {
 	announcement,
 	community,
+	communityInvite,
+	communityInviteRelations,
+	communityJoinRequest,
+	communityJoinRequestRelations,
 	communityMember,
 	communityMemberRelations,
 	communityRelations,
@@ -15,6 +19,10 @@ import {
 } from "./community"
 import {
 	trip,
+	tripInvite,
+	tripInviteRelations,
+	tripJoinRequest,
+	tripJoinRequestRelations,
 	tripParticipant,
 	tripParticipantRelations,
 	tripRelations,
@@ -40,6 +48,10 @@ export const schema = {
 	communityMemberRelations,
 	message,
 	messageRelations,
+	communityInvite,
+	communityInviteRelations,
+	communityJoinRequest,
+	communityJoinRequestRelations,
 
 	userProfile,
 	userProfileRelations,
@@ -50,6 +62,10 @@ export const schema = {
 	tripRelations,
 	tripParticipant,
 	tripParticipantRelations,
+	tripInvite,
+	tripInviteRelations,
+	tripJoinRequest,
+	tripJoinRequestRelations,
 
 	vehicle,
 }
