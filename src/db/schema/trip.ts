@@ -91,3 +91,46 @@ export const tripParticipantRelations = relations(
 		}),
 	}),
 )
+
+export const inviteStatuses = ["pending", "accepted", "rejected"] as const
+
+export const validInviteStatusesEnum = pgEnum("invite_status", inviteStatuses)
+
+// New table for trip invite
+export const tripInvite = pgTable(
+	"trip_invite",
+	{
+		id: serial("id").primaryKey(),
+		tripId: integer("trip_id")
+			.notNull()
+			.references(() => trip.id, { onDelete: "cascade" }),
+		inviterId: text("inviter_id")
+			.references(() => authUser.id)
+			.notNull(),
+		inviteCode: text("invite_code").notNull().unique(),
+		status: validInviteStatusesEnum("status").default("pending").notNull(), // pending, accepted, rejected
+		expiresAt: timestamp("expires_at", { mode: "string" }),
+		...sharedColumns,
+	},
+	table => ({
+		tripId: index("trip_invite_trip_id_idx").on(table.tripId),
+		inviteCode: index("trip_invite_invite_code_idx").on(table.inviteCode),
+	}),
+)
+
+// Relations for trip invite
+export const tripInviteRelations = relations(tripInvite, ({ one }) => ({
+	trip: one(trip, {
+		fields: [tripInvite.tripId],
+		references: [trip.id],
+	}),
+	inviter: one(authUser, {
+		fields: [tripInvite.inviterId],
+		references: [authUser.id],
+	}),
+	profile: one(userProfile, {
+		fields: [tripInvite.inviterId],
+		references: [userProfile.userId],
+	}),
+}))
+
