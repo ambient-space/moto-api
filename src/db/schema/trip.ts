@@ -1,6 +1,8 @@
 import { sharedColumns } from "@db/shared"
 import { relations } from "drizzle-orm"
 import {
+	boolean,
+	index,
 	integer,
 	jsonb,
 	pgEnum,
@@ -13,6 +15,7 @@ import { authUser } from "./auth"
 import { community } from "./community"
 import { userProfile } from "./user"
 
+// New table for trips
 export const trip = pgTable("trip", {
 	id: serial("id").primaryKey(),
 	communityId: integer("community_id").references(() => community.id),
@@ -23,6 +26,7 @@ export const trip = pgTable("trip", {
 	description: text("description"),
 	startDate: timestamp("start_date", { mode: "string" }).notNull(),
 	endDate: timestamp("end_date", { mode: "string" }),
+	isPrivate: boolean("is_private").default(false).notNull(),
 	// startLocation: jsonb("start_location").notNull(), // { lat: number, lng: number }
 	// endLocation: jsonb("end_location"), // { lat: number, lng: number }
 	startLocation: text("start_location").notNull(),
@@ -38,6 +42,7 @@ export const validTripStatusEnum = pgEnum("trip_status", validTripStatuses)
 export const validTripRoles = ["organizer", "participant"] as const
 export const validTripRoleEnum = pgEnum("trip_role", validTripRoles)
 
+// New table for trip participants
 export const tripParticipant = pgTable("trip_participant", {
 	id: serial("id").primaryKey(),
 	tripId: integer("trip_id")
@@ -51,6 +56,7 @@ export const tripParticipant = pgTable("trip_participant", {
 	updatedAt: sharedColumns.updatedAt,
 })
 
+// Relations for trips
 export const tripRelations = relations(trip, ({ many, one }) => ({
 	participants: many(tripParticipant),
 	authUser: one(authUser, {
@@ -67,6 +73,7 @@ export const tripRelations = relations(trip, ({ many, one }) => ({
 	}),
 }))
 
+// Relations for trip participants
 export const tripParticipantRelations = relations(
 	tripParticipant,
 	({ one }) => ({
